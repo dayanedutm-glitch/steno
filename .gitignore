@@ -1,16 +1,8 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-
-# IDE & Editor files
+# IDE / editor files
 .vscode/
 .idea/
 *.swp
+
+# OS noise
+Thumbs.db
+desktop.ini
