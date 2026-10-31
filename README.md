@@ -1,27 +1,138 @@
-# Python Steno Typing Engine & Interactive Academy
+# Steno Tutor — Chorded Keyboard Academy
 
-A lightweight, order-independent stenography / chorded keyboard engine and interactive web tutor for standard QWERTY keyboards.
-
-Instead of typing letters sequentially, this system lets you press multiple keys at the same time (a chord). When the keys are released, the engine recognizes the combination and expands it into full words, morpheme compounds, or grammar inflections.
-
----
-
-## Features
-
-- **Order-Independent Chording:** Physical key combinations are sorted alphabetically in memory, meaning the exact order of physical key contact doesn't matter.
-- **Physical 10-Finger Constraints:** Each finger can press at most one key per chord (Rule 1). Words are parsed using a first-come, first-served finger allocation algorithm.
-- **2-Step Derivational Morpheme Engine:** Strike a root chord (e.g. `take`), and derivative morphemes arm dynamically (e.g. `in-` $\rightarrow$ `intake`, `over-` $\rightarrow$ `overtake`). Pressing Space commits the root as a separate word, and Backspace intelligently splits compound words back into separate roots.
-- **Part-of-Speech Grammar Inflections:** Tap numbers `1-4` to inflect the last chorded word based on its part of speech (verbs: past tense, continuous, 3rd person; nouns: plural, possessive).
-- **SVG Visual Inheritance:** Grammar-inflected words (e.g. `took`, `intakes`, `functions`) inherit the visual icon and artwork of their base lemma rather than falling back to generic placeholders.
-- **Smart Dual-Mode Typing in Sandbox:** Type letter-by-letter (`c-a-t`) or strike multi-key chords in the exact same input box without mode collisions.
-- **Rich Copy & Paste Shortcuts:** Press `Ctrl+C` or click **Copy** to copy clean lettered words to your clipboard—even when in **SVG Only** mode, all grammar is preserved and raw SVG tags/emojis are omitted. Press `Ctrl+V` to paste text back into the sandbox.
-- **Single-Letter & Anagram Collision Resolution:** Single-letter words and collisions automatically integrate numerical modifiers (e.g., `i` $\rightarrow$ `1i`, `file` $\rightarrow$ `efil`, `life` $\rightarrow$ `1efil`).
-- **Normal Typing Bypass:** Tap or hold the **Spacebar** to disarm roots, commit words, and type normally.
-- **High Performance & Stability:** Multi-threaded expansion with `<0.1ms` hook latency prevents Windows hook timeouts.
+A single-file, fully offline steno (chorded keyboard) tutor. Open
+[`steno_tutor.html`](steno_tutor.html) in any browser — no CDNs, fonts, scripts,
+network calls or build steps. Dictionary, SVG artwork, emoji, Chinese characters
+and grammar rules are all embedded in the file.
 
 ---
 
-## 10-Finger Key Mapping
+## The interface
+
+The default view is deliberately bare: **the typing box on the left, the morpheme
+word tree on the right**, nothing else. No headers, no toolbars, no status text —
+only the words and artwork you produce.
+
+| Key | Does |
+| :--- | :--- |
+| `?` or `Alt+K` | show the full shortcuts card |
+| `Alt+F` | toggle the full interface (all panels and controls) |
+| `Alt+Shift+F` | browser fullscreen |
+| `Esc` | close the card / clear the box |
+
+Feedback is silent: the box flashes green on a good chord and amber on a
+mistyped one, instead of printing a status message.
+
+---
+
+## What it teaches
+
+Press several keys **together** as a chord; on release the chord expands into a
+word.
+
+| Chord | Output |
+| :--- | :--- |
+| `c + a + n` | can |
+| `d + g + o` | dog |
+| `a + f + s` | fast |
+| `b + k + o` | book |
+| `e + f + i + l` | file |
+| `1 + e + f + i + l` | life (anagram of *file* + number key) |
+| `e + h + z + 4` | 这 (zhè — *this*) |
+
+### Rules the engine follows
+
+- **Order independence** — key order is irrelevant; chords are sorted in memory.
+- **One key per finger** — each finger presses at most one key per chord.
+- **Collision resolution** — anagrams get a numeric modifier (`file` / `life` → `efil` / `1efil`).
+- **Morpheme engine** — striking a root chord arms its derivatives
+  (`take` → `intake`, `overtake`, `mistake`…).
+- **Grammar inflection** — tap `1`–`4` to inflect the last word by part of speech
+  (verbs: past / -ing / 3rd person / past participle; nouns: plural / possessive…).
+- **Grammar is stored per word** — every lemma carries its own forms, and so does
+  every morpheme compound. `do` inflects to *did · doing · does · done*, while
+  `undo` inflects to **undid · undoing · undoes · undone** — the compound never
+  borrows its root's paradigm. Noun compounds such as `income` take noun forms
+  (*incomes · income's*).
+- **No invented grammar** — a word is inflectable only if its record carries forms.
+  Chinese characters, function words (`the`, `this`, `of`…) and plain typed words
+  have none, so tapping `1`–`4` on them leaves the word untouched and reports
+  *No Grammar* instead of producing `这ing` or `jumpeded`.
+
+### Where grammar lives
+
+Every word owns its paradigm, in the same record that owns its chord:
+
+```js
+{ word: "go", chord: "go", keys: "go", note: "…",
+  grammar: { pos: "verb", forms: { "1": "went", "2": "going", "3": "goes", "4": "gone" } } }
+```
+
+```js
+"nu": { "morpheme": "un-", "chord": "nu", "word": "undo", "char": "撤销",
+        "grammar": { "pos": "verb", "forms": { "1": "undid", "2": "undoing", "3": "undoes", "4": "undone" } },
+        "emoji": "↩️", "note": "Reverse action" }
+```
+
+Adding a word is a single edit. `GRAMMAR_DATA` is just an index assembled from
+those records at load, so the dictionary and the grammar tables cannot drift
+apart (they previously disagreed about `upturn`).
+- **Mistyped chords self-clean** — a multi-key strike that maps to nothing is
+  treated as a typo: its letters are removed instead of being left in the box, so
+  **Copy** and the **Unmapped** list stay clean. Letter-by-letter typing (one key
+  at a time) is untouched.
+
+---
+
+## Output modes
+
+The default is **Combo** — every chord shows its artwork *and* its word.
+
+| Mode | Shortcut | Shows |
+| :--- | :--- | :--- |
+| Words | `Alt+1` | the word |
+| 汉字 | `Alt+2` | the Hanzi character |
+| SVG | `Alt+3` | the pictogram only |
+| Combo | `Alt+4` | pictogram + word |
+
+`Alt+M` cycles through them.
+
+Chinese characters carry a **pictogram of their meaning** (这 → 👉, 狗 → 🐶,
+爱 → ❤️, 书 → 📖, 大 → 🐘), so the graphic mode reads as a cue rather than a
+repeat of the character.
+
+---
+
+## Other shortcuts
+
+| Keys | Action |
+| :--- | :--- |
+| `Alt+S`, `Ctrl+/` | focus the typing box |
+| `Ctrl+C` | copy English words |
+| `Ctrl+Shift+C` | copy English only |
+| `Ctrl+V` | paste |
+| `Ctrl+L`, `Esc` | clear the box |
+| `Alt+U` | copy the unmapped list |
+| `Alt+Shift+U` | open the unmapped list |
+| `Space` | commit the word / disarm the root |
+| `1`–`4` | grammar inflection |
+| `Backspace` | undo a word / split a compound |
+
+---
+
+## The three views (full interface)
+
+1. **Training** — guided lessons with live finger highlighting on dual hands,
+   key-by-key breakdown, streak tracking and sound feedback.
+2. **Sandbox** — the typing box and the morpheme word tree.
+3. **Finger Guide** — the 10-finger colour map and layout reference.
+
+The word tree shows each root and its derivatives with pictogram, English word,
+Chinese translation and chord hint.
+
+---
+
+## 10-Finger key mapping
 
 | Finger | Hand | Keys |
 | :--- | :--- | :--- |
@@ -38,108 +149,28 @@ Instead of typing letters sequentially, this system lets you press multiple keys
 
 ---
 
-## Interactive Web Academy (`steno_tutor.html`)
+## What's inside the file
 
-Open [`steno_tutor.html`](steno_tutor.html) directly in any web browser. It is 100% self-contained and offline (zero external CDNs or web fonts).
-
-### Modes:
-1. **Training Mode:** Step-by-step guided lessons with real-time finger highlighting on dual hands, key-by-key breakdown, streak tracking, and sound feedback.
-2. **Sandbox Mode (Minimalist 2-Box Design):**
-   - **Left Box (Typing Workspace):**
-     - Instant, zero-latency visible typing for regular letters on `keydown` with a live pulsing text caret.
-     - Multi-key steno chording ($\ge 2$ keys) dynamically expands into words, SVG signs, or combinations.
-     - Output mode options: **Words**, **SVG Only**, or **Combo**.
-     - Quick action buttons: **Copy** (`Ctrl+C`, clean lettered text without SVGs), **Paste** (`Ctrl+V`), and **Clear**.
-     - Interactive Grammar Inflection bar (tap `1-4` for POS-based inflections).
-   - **Right Box (Morpheme Word Tree):**
-     - Real-time 2-step Morpheme Tree with vector SVG signs on root and derivative branch cards.
-     - Arms dynamically on root chords (e.g., `take`, `come`, `connect`, `do`, `walk`) to display compound derivatives with instant chord hints.
-3. **Finger Guide:** Interactive 10-finger color scheme map and layout reference.
+| Data | Content |
+| :--- | :--- |
+| `STENO_DICTIONARY` | 289 chorded entries (English + Chinese), each carrying its own `grammar` when it inflects |
+| `CHORD_MAP` | extra ergonomic aliases (~100) |
+| `MORPHEME_ROOTS_TREE` | 52 roots, 160 derivative words — roots and compounds carry their own `grammar` |
+| `WORD_VISUALS` | ~320 pictograms with colour palettes |
+| `CHINESE_TO_ENGLISH` | 75 Hanzi → English mappings |
+| `CJK_PICTOGRAMS` | 95 meaning pictograms for Chinese tokens |
+| `GRAMMAR_DATA` | *derived at load* from the records above — not hand-maintained |
 
 ---
 
-## Chinese Pinyin Strokes & Chording (Roadmap & Design)
+## Roadmap — Chinese Pinyin chording
 
-We are integrating Chinese Pinyin chords and Hanzi character output for vocabulary words.
+Typing Hanzi directly from Pinyin chords is designed but not fully wired in:
 
-### 1. Concept Examples
-- `4zhe` $\rightarrow$ **这** (zhè, tone 4)
-- `4shi` $\rightarrow$ **是** (shì, tone 4)
-- `1ta`  $\rightarrow$ **他** (tā, tone 1)
-- `2na`  $\rightarrow$ **拿** (ná, tone 2, "take")
-- `3gou` $\rightarrow$ **狗** (gǒu, tone 3, "dog")
-
-### 2. Data Structure Integration
-Each vocabulary entry in `data.json` supports a Chinese mapping object, alongside a fast lookup dictionary:
-```json
-{
-  "word": "take",
-  "chord": "aekt",
-  "chinese": {
-    "char": "拿",
-    "pinyin": "ná",
-    "tone": 2,
-    "pinyin_chord": "2na"
-  }
-}
-```
-
-```json
-"chinese_chords": {
-  "4zhe": { "char": "这", "pinyin": "zhè", "english": "this" },
-  "4shi": { "char": "是", "pinyin": "shì", "english": "is/be" },
-  "1ta":  { "char": "他", "pinyin": "tā",  "english": "he/him" },
-  "2na":  { "char": "拿", "pinyin": "ná",  "english": "take" }
-}
-```
-
-### 3. Finger Collision Solutions for Pinyin Chords
-While syllables like `4zhe` and `4shi` use 4 distinct fingers with zero conflict, syllables like `1ta` share the Left Pinky (`1` and `a`). Three design options are available:
-- **Option 1 (Dual-Hand Tone Keys):** Tones on both hands (Left: `1, 2, 3, 4`; Right: `7, 8, 9, 0`). When letters are on the left hand, the tone is struck on the right hand to prevent finger collisions.
-- **Option 2 (Yawei Chinese Steno Style):** Left hand chords the initial consonant (声母: `zh`, `sh`, `t`, etc.), right hand chords the final vowel + tone (韵母 + 声调). Guarantees zero collisions for all Chinese syllables.
-- **Option 3 (Sequential Tone Tap):** Chord the pinyin letters together, then tap the tone number `1-4` to trigger the character.
-
----
-
-## Installation & CLI Usage
-
-Requires Python 3.8+ on Windows.
-
-```bash
-pip install keyboard
-```
-
-### 1. Run the Background Typing Listener
-```bash
-python main.py
-```
-Switch to any application (Notepad, browser, editor) and strike chords (e.g., `c + a + n` for `can `).
-
-### 2. Add New Words to Dictionary
-Automatically calculate fingers, resolve collisions, and save to `data.json`:
-```bash
-python main.py --add "yourword"
-```
-
-### 3. Preview Chord Generation
-Inspect finger allocations and conflicts without saving:
-```bash
-python main.py --generate "yourword"
-```
-
-### 4. List All Current Chords
-```bash
-python main.py --list
-```
-
----
-
-## Project Structure
-
-```text
-├── main.py          # Core engine, keyboard listener & CLI tool
-├── data.json        # Dictionary storing chords, morpheme roots & grammar rules
-├── steno_tutor.html # Standalone interactive web academy & sandbox tutor
-├── .gitignore       # Standard git ignore rules
-└── README.md        # Comprehensive documentation & Chinese roadmap
-```
+| Chord | Output |
+| :--- | :--- |
+| `4zhe` | 这 (zhè, tone 4) |
+| `4shi` | 是 (shì, tone 4) |
+| `1ta` | 他 (tā, tone 1) |
+| `2na` | 拿 (ná, tone 2) |
+| `3gou` | 狗 (gǒu, tone 3) |

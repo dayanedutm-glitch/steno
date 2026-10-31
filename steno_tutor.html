@@ -242,12 +242,117 @@
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        /* ---- Layout utilities referenced by inline markup but never defined ---- */
+        /* (these were missing, so .w-11/.h-11 tiles collapsed and SVGs fell back to 300x300) */
+        .w-0\.5 { width: 2px; }
+        .w-7 { width: 28px; }
+        .w-8 { width: 32px; }
+        .w-9 { width: 36px; }
+        .w-10 { width: 40px; }
+        .w-11 { width: 44px; }
+        .w-12 { width: 48px; }
+        .w-24 { width: 96px; }
+        .h-5 { height: 20px; }
+        .h-7 { height: 28px; }
+        .h-8 { height: 32px; }
+        .h-9 { height: 36px; }
+        .h-10 { height: 40px; }
+        .h-11 { height: 44px; }
+        .h-12 { height: 48px; }
+        .h-24 { height: 96px; }
+        .h-44 { height: 176px; }
+        .h-52 { height: 208px; }
+        .h-full { height: 100%; }
+        .min-h-\[220px\] { min-height: 220px; }
+        .min-h-\[260px\] { min-height: 260px; }
+        .min-w-\[32px\] { min-width: 32px; }
+        .min-h-full { min-height: 100%; }
+        .max-h-\[360px\] { max-height: 360px; }
+        .overflow-hidden { overflow: hidden; }
+        .overflow-y-auto { overflow-y: auto; }
+        .overflow-x-auto { overflow-x: auto; }
+        .shrink-0 { flex-shrink: 0; }
+        .content-start { align-content: flex-start; }
+        .justify-start { justify-content: flex-start; }
+        .gap-2\.5 { gap: 10px; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cursor-text { cursor: text; }
+        .absolute { position: absolute; }
+        .inline-block { display: inline-block; }
+        .align-middle { vertical-align: middle; }
+        .mr-1\.5 { margin-right: 6px; }
+        .ml-0\.5 { margin-left: 2px; }
+        /* an icon must never outgrow the tile that holds it */
+        .chord-item svg, .chord-item span > svg, #sandbox-editor svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        @media (min-width: 768px) {
+            .md\:w-12 { width: 48px; }
+            .md\:h-12 { height: 48px; }
+            .md\:h-11 { height: 44px; }
+            .md\:h-48 { height: 192px; }
+            .md\:items-start { align-items: flex-start; }
+            .md\:min-w-\[42px\] { min-width: 42px; }
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        /* Positioning utilities used by the overlays (were never defined) */
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+
+        /* ================= Minimal shell ================= */
+        .minimal .ui-chrome { display: none !important; }
+        /* the toast rewrites its own className, so hide it by id */
+        .minimal #sandbox-toast { display: none !important; }
+
+        .minimal #sandbox-typing-panel,
+        .minimal #sandbox-tree-panel {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .minimal #view-sandbox > .grid {
+            min-height: calc(100vh - 2.5rem);
+            align-items: stretch;
+        }
+
+        .minimal #sandbox-editor {
+            min-height: calc(100vh - 4rem);
+            max-height: none;
+        }
+
+        .minimal #sandbox-morpheme-tree-container {
+            min-height: calc(100vh - 4rem);
+            max-height: calc(100vh - 4rem);
+            background: transparent;
+            border-color: transparent;
+        }
+
+        /* silent feedback: the box itself flashes instead of printing status text */
+        #sandbox-editor.flash-ok {
+            box-shadow: 0 0 0 1px rgba(52, 211, 153, .85), 0 0 26px rgba(52, 211, 153, .22);
+        }
+        #sandbox-editor.flash-err {
+            box-shadow: 0 0 0 1px rgba(251, 191, 36, .9), 0 0 26px rgba(251, 191, 36, .22);
+        }
+
+        /* shortcuts card rows */
+        .sc-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid rgba(30, 41, 59, .55); }
+        .sc-row span { font-size: 13px; color: #cbd5e1; }
+        .sc-row kbd { font-size: 11px; font-family: ui-monospace, monospace; color: #a5b4fc; background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col minimal">
 
     <!-- Header Navigation -->
-    <header class="bg-slate-900/95 border-b border-slate-800 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50 backdrop-blur">
+    <header class="ui-chrome bg-slate-900/95 border-b border-slate-800 px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50 backdrop-blur">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/25 text-white font-bold text-xl flex items-center justify-center w-11 h-11">
                 ⚡
@@ -256,7 +361,7 @@
                 <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
                     Steno Keyboard Academy & Sandbox
                 </h1>
-                <p class="text-xs text-slate-400">Order-Independent 10-Finger Chording System (57 Words)</p>
+                <p id="app-subtitle" class="text-xs text-slate-400">Order-Independent 10-Finger Chording System</p>
             </div>
         </div>
 
@@ -393,10 +498,10 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1">
                 
                 <!-- LEFT BOX: Typing Workspace with Mode Select & Actions -->
-                <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col justify-between gap-4">
+                <div id="sandbox-typing-panel" class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col justify-between gap-4">
                     
                     <!-- Top Bar: Output Mode Options & Quick Actions -->
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div class="ui-chrome flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                                 ✍️ Output Mode:
@@ -426,7 +531,7 @@
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <button id="editor-focus-btn" onclick="app.focusSandboxEditor()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-3 py-1.5 bg-slate-950 rounded-xl border border-slate-800 hover:border-indigo-500/50 transition-all flex items-center gap-1.5 active:scale-95 shadow" title="Focus typing cursor in Sandbox (Shortcut: Alt+S or Ctrl+/)">
                                 🎯 Focus <span class="text-[10px] text-slate-500 font-mono">(Alt+S)</span>
                             </button>
@@ -454,21 +559,21 @@
                         <!-- Rich Interactive Typing Box with Live Visible Typing & Blinking Caret -->
                         <div id="sandbox-editor" tabindex="0" class="w-full flex-1 min-h-[220px] max-h-[360px] overflow-y-auto bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl p-4 flex flex-wrap items-center content-start gap-2 focus:outline-none shadow-inner cursor-text relative transition-colors">
                             <span id="editor-placeholder" class="text-slate-600 font-mono text-xs md:text-sm select-none pointer-events-none">
-                                Type regular letters normally or strike steno chords here... (Press Space for spaces, Backspace to delete)
+                                
                             </span>
                             <span id="editor-caret" class="inline-block w-0.5 h-5 bg-indigo-400 animate-pulse ml-0.5 align-middle rounded pointer-events-none select-none"></span>
                         </div>
                     </div>
 
                     <!-- Real-time Status / Typing Feedback Toast -->
-                    <div id="sandbox-toast" class="text-xs font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-4 py-2.5 rounded-xl text-center transition-all">
+                    <div id="sandbox-toast" class="ui-chrome text-xs font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-4 py-2.5 rounded-xl text-center transition-all">
                         Type letters directly to see them instantly, or strike chords to arm the Morpheme Tree!
                     </div>
                 </div>
 
                 <!-- RIGHT BOX: Dynamic 2-Step Morpheme Word Tree with SVG Signs -->
-                <div class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col justify-between gap-3">
-                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div id="sandbox-tree-panel" class="lg:col-span-5 bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col justify-between gap-3">
+                    <div class="ui-chrome flex items-center justify-between border-b border-slate-800/80 pb-3">
                         <div class="flex items-center gap-2.5">
                             <span class="text-lg">🌳</span>
                             <div>
@@ -487,7 +592,7 @@
                     </div>
 
                     <!-- Quick Helper Hint -->
-                    <div class="text-[11px] text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800/60 flex items-center gap-2">
+                    <div class="ui-chrome text-[11px] text-slate-400 bg-slate-950 p-2.5 rounded-xl border border-slate-800/60 flex items-center gap-2">
                         <span>💡</span>
                         <span>Roots with morphemes: <span class="text-indigo-400 font-bold">DO, CONNECT, COME, WALK, FILE, LIFE, WORD, CODE, TAKE</span>. Strike any to branch!</span>
                     </div>
@@ -507,6 +612,19 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" id="scheme-guide-cards">
                 <!-- Dynamically generated scheme cards -->
+            </div>
+        </div>
+
+
+        <!-- Shortcuts Card (single help overlay) -->
+        <div id="shortcuts-overlay" class="fixed inset-0 flex items-center justify-center p-4 hidden" style="z-index: 60; background: rgba(2, 6, 23, .88); backdrop-filter: blur(6px);" onclick="if (event.target === this) app.toggleShortcuts(false)">
+            <div class="bg-slate-900 border border-slate-700/70 rounded-2xl p-6 shadow-2xl" style="width: min(700px, 100%);">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="text-base font-black tracking-tight text-white">⌨️ Shortcuts</h2>
+                    <button onclick="app.toggleShortcuts(false)" class="text-slate-400 hover:text-white font-bold text-sm transition-colors" style="width: 32px; height: 32px; border-radius: 9999px; background: #1e293b;">✕</button>
+                </div>
+                <div id="shortcuts-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; padding-top: 10px;"></div>
+                <p class="text-slate-500" style="font-size: 11px; padding-top: 10px;">Press <span class="font-mono text-indigo-300">?</span> or <span class="font-mono text-indigo-300">Esc</span> to close</p>
             </div>
         </div>
 
@@ -624,63 +742,64 @@
 
         // 57 Steno Vocabulary Dictionary with Chords & Kept Keys
         const STENO_DICTIONARY = [
-            { word: "can", chord: "acn", keys: "can", note: "Clean 3-finger match" },
-            { word: "dog", chord: "dgo", keys: "dog", note: "Clean 3-finger match" },
-            { word: "fast", chord: "afs", keys: "fas", note: "t skipped (conflict on Left Index)" },
-            { word: "book", chord: "bko", keys: "bok", note: "o duplicate skipped" },
-            { word: "file", chord: "efil", keys: "file", note: "Clean 4-finger match" },
-            { word: "life", chord: "1efil", keys: "life", note: "Anagram of file + number 1" },
+            { word: "can", chord: "acn", keys: "can", note: "Clean 3-finger match" , grammar: { pos: "verb", forms: {"1":"could"} } },
+            { word: "go", chord: "go", keys: "go", note: "Clean 2-finger match (g Left Index, o Right Ring)" , grammar: { pos: "verb", forms: {"1":"went","2":"going","3":"goes","4":"gone"} } },
+            { word: "dog", chord: "dgo", keys: "dog", note: "Clean 3-finger match" , grammar: { pos: "noun", forms: {"1":"dogs","2":"dog's","3":"dogs'"} } },
+            { word: "fast", chord: "afs", keys: "fas", note: "t skipped (conflict on Left Index)" , grammar: { pos: "adjective", forms: {"1":"faster","2":"fastest"} } },
+            { word: "book", chord: "bko", keys: "bok", note: "o duplicate skipped" , grammar: { pos: "noun", forms: {"1":"books","2":"book's","3":"books'"} } },
+            { word: "file", chord: "efil", keys: "file", note: "Clean 4-finger match" , grammar: { pos: "noun", forms: {"1":"files","2":"file's","3":"files'"} } },
+            { word: "life", chord: "1efil", keys: "life", note: "Anagram of file + number 1" , grammar: { pos: "noun", forms: {"1":"lives","2":"life's","3":"lives'"} } },
             { word: "on", chord: "no", keys: "on", note: "Clean 2-finger match" },
             { word: "no", chord: "1no", keys: "no", note: "Anagram of on + number 1" },
             { word: "how", chord: "how", keys: "how", note: "Clean 3-finger match" },
-            { word: "who", chord: "1how", keys: "who", note: "Anagram of how + number 1" },
+            { word: "who", chord: "1how", keys: "who", note: "Anagram of how + number 1" , grammar: { pos: "pronoun", forms: {"1":"whom","2":"whose"} } },
             { word: "whom", chord: "2how", keys: "who", note: "Anagram of how + number 2" },
-            { word: "i", chord: "1i", keys: "i1", note: "Single-letter rule (1 + i)" },
-            { word: "he", chord: "eh", keys: "he", note: "Clean 2-finger match" },
-            { word: "she", chord: "ehs", keys: "she", note: "Clean 3-finger match" },
-            { word: "it", chord: "it", keys: "it", note: "Clean 2-finger match" },
-            { word: "we", chord: "ew", keys: "we", note: "Clean 2-finger match" },
-            { word: "they", chord: "eht", keys: "the", note: "y skipped (conflict with h)" },
-            { word: "you", chord: "oy", keys: "yo", note: "u skipped (conflict with y)" },
+            { word: "i", chord: "1i", keys: "i1", note: "Single-letter rule (1 + i)" , grammar: { pos: "pronoun", forms: {"1":"me","2":"my","3":"myself","4":"mine"} } },
+            { word: "he", chord: "eh", keys: "he", note: "Clean 2-finger match" , grammar: { pos: "pronoun", forms: {"1":"him","2":"his","3":"himself"} } },
+            { word: "she", chord: "ehs", keys: "she", note: "Clean 3-finger match" , grammar: { pos: "pronoun", forms: {"1":"her","2":"her","3":"herself","4":"hers"} } },
+            { word: "it", chord: "it", keys: "it", note: "Clean 2-finger match" , grammar: { pos: "pronoun", forms: {"1":"it","2":"its","3":"itself"} } },
+            { word: "we", chord: "ew", keys: "we", note: "Clean 2-finger match" , grammar: { pos: "pronoun", forms: {"1":"us","2":"our","3":"ourselves","4":"ours"} } },
+            { word: "they", chord: "eht", keys: "the", note: "y skipped (conflict with h)" , grammar: { pos: "pronoun", forms: {"1":"them","2":"their","3":"themselves","4":"theirs"} } },
+            { word: "you", chord: "oy", keys: "yo", note: "u skipped (conflict with y)" , grammar: { pos: "pronoun", forms: {"1":"you","2":"your","3":"yourself","4":"yours"} } },
             { word: "what", chord: "ahtw", keys: "what", note: "Clean 4-finger match" },
             { word: "when", chord: "ehnw", keys: "when", note: "Clean 4-finger match" },
             { word: "why", chord: "hw", keys: "wh", note: "y skipped (conflict with h)" },
             { word: "where", chord: "ehrw", keys: "wher", note: "e duplicate skipped" },
             { word: "which", chord: "chiw", keys: "whic", note: "h duplicate skipped" },
             { word: "whose", chord: "ehow", keys: "whoe", note: "s skipped (conflict with w)" },
-            { word: "walk", chord: "aklw", keys: "walk", note: "Clean 4-finger match" },
+            { word: "walk", chord: "aklw", keys: "walk", note: "Clean 4-finger match" , grammar: { pos: "verb", forms: {"1":"walked","2":"walking","3":"walks","4":"walked"} } },
             { word: "in", chord: "in", keys: "in", note: "Clean 2-finger match" },
-            { word: "big", chord: "bgi", keys: "big", note: "Clean 3-finger match (Left Thumb B)" },
-            { word: "step", chord: "epst", keys: "step", note: "Clean 4-finger match" },
+            { word: "big", chord: "bgi", keys: "big", note: "Clean 3-finger match (Left Thumb B)" , grammar: { pos: "adjective", forms: {"1":"bigger","2":"biggest"} } },
+            { word: "step", chord: "epst", keys: "step", note: "Clean 4-finger match" , grammar: { pos: "verb", forms: {"1":"stepped","2":"stepping","3":"steps","4":"stepped"} } },
             { word: "if", chord: "fi", keys: "if", note: "Clean 2-finger match" },
-            { word: "come", chord: "cmo", keys: "com", note: "e skipped (conflict with c)" },
+            { word: "come", chord: "cmo", keys: "com", note: "e skipped (conflict with c)" , grammar: { pos: "verb", forms: {"1":"came","2":"coming","3":"comes","4":"come"} } },
             { word: "for", chord: "fo", keys: "fo", note: "r skipped (conflict with f)" },
-            { word: "do", chord: "do", keys: "do", note: "Clean 2-finger match" },
-            { word: "have", chord: "aehv", keys: "have", note: "Clean 4-finger match" },
+            { word: "do", chord: "do", keys: "do", note: "Clean 2-finger match" , grammar: { pos: "verb", forms: {"1":"did","2":"doing","3":"does","4":"done"} } },
+            { word: "have", chord: "aehv", keys: "have", note: "Clean 4-finger match" , grammar: { pos: "verb", forms: {"1":"had","2":"having","3":"has","4":"had"} } },
             { word: "with", chord: "hitw", keys: "with", note: "Clean 4-finger match" },
-            { word: "want", chord: "antw", keys: "want", note: "Clean 4-finger match" },
+            { word: "want", chord: "antw", keys: "want", note: "Clean 4-finger match" , grammar: { pos: "verb", forms: {"1":"wanted","2":"wanting","3":"wants","4":"wanted"} } },
             { word: "any", chord: "any", keys: "any", note: "Clean 3-finger match" },
-            { word: "ask", chord: "aks", keys: "ask", note: "Clean 3-finger match" },
-            { word: "window", chord: "dinow", keys: "windo", note: "w duplicate skipped" },
+            { word: "ask", chord: "aks", keys: "ask", note: "Clean 3-finger match" , grammar: { pos: "verb", forms: {"1":"asked","2":"asking","3":"asks","4":"asked"} } },
+            { word: "window", chord: "dinow", keys: "windo", note: "w duplicate skipped" , grammar: { pos: "noun", forms: {"1":"windows","2":"window's","3":"windows'"} } },
             { word: "that", chord: "aht", keys: "tha", note: "t duplicate skipped" },
-            { word: "machine", chord: "acimn", keys: "macin", note: "h and e conflicts skipped" },
-            { word: "connect", chord: "cnot", keys: "cont", note: "n, e, c conflicts skipped" },
-            { word: "local", chord: "acl", keys: "lca", note: "o and l conflicts skipped" },
+            { word: "machine", chord: "acimn", keys: "macin", note: "h and e conflicts skipped" , grammar: { pos: "noun", forms: {"1":"machines","2":"machine's","3":"machines'"} } },
+            { word: "connect", chord: "cnot", keys: "cont", note: "n, e, c conflicts skipped" , grammar: { pos: "verb", forms: {"1":"connected","2":"connecting","3":"connects","4":"connected"} } },
+            { word: "local", chord: "acl", keys: "lca", note: "o and l conflicts skipped" , grammar: { pos: "adjective", forms: {"1":"more local","2":"most local","3":"locally"} } },
             { word: "about", chord: "abotu", keys: "about", note: "Clean 5-finger match" },
-            { word: "think", chord: "hint", keys: "thin", note: "k skipped (conflict with i)" },
+            { word: "think", chord: "hint", keys: "thin", note: "k skipped (conflict with i)" , grammar: { pos: "verb", forms: {"1":"thought","2":"thinking","3":"thinks","4":"thought"} } },
             { word: "please", chord: "aelps", keys: "pleas", note: "e duplicate skipped" },
-            { word: "world", chord: "dorw", keys: "word", note: "l skipped (conflict with o)" },
-            { word: "steno", chord: "enost", keys: "steno", note: "Clean 5-finger match" },
-            { word: "code", chord: "co", keys: "co", note: "d and e conflicts skipped" },
-            { word: "computer", chord: "cmopt", keys: "compt", note: "u, e, r conflicts skipped" },
-            { word: "keyboard", chord: "abekory", keys: "keyboar", note: "d skipped (conflict with e)" },
-            { word: "function", chord: "cfinou", keys: "funcio", note: "t and n conflicts skipped" },
-            { word: "stand", chord: "adnst", keys: "stand", note: "Clean 5-finger match" },
-            { word: "take", chord: "aekt", keys: "take", note: "Clean 4-finger match" },
-            { word: "turn", chord: "ntu", keys: "tun", note: "r skipped (conflict on Left Index)" },
-            { word: "form", chord: "fmo", keys: "fom", note: "r skipped (conflict on Left Index)" },
-            { word: "press", chord: "eprs", keys: "pres", note: "s duplicate skipped" },
-            { word: "act", chord: "act", keys: "act", note: "Clean 3-finger match" },
+            { word: "world", chord: "dorw", keys: "word", note: "l skipped (conflict with o)" , grammar: { pos: "noun", forms: {"1":"worlds","2":"world's","3":"worlds'"} } },
+            { word: "steno", chord: "enost", keys: "steno", note: "Clean 5-finger match" , grammar: { pos: "noun", forms: {"1":"stenos","2":"steno's"} } },
+            { word: "code", chord: "co", keys: "co", note: "d and e conflicts skipped" , grammar: { pos: "verb", forms: {"1":"coded","2":"coding","3":"codes","4":"coded"} } },
+            { word: "computer", chord: "cmopt", keys: "compt", note: "u, e, r conflicts skipped" , grammar: { pos: "noun", forms: {"1":"computers","2":"computer's","3":"computers'"} } },
+            { word: "keyboard", chord: "abekory", keys: "keyboar", note: "d skipped (conflict with e)" , grammar: { pos: "noun", forms: {"1":"keyboards","2":"keyboard's","3":"keyboards'"} } },
+            { word: "function", chord: "cfinou", keys: "funcio", note: "t and n conflicts skipped" , grammar: { pos: "noun", forms: {"1":"functions","2":"function's","3":"functions'"} } },
+            { word: "stand", chord: "adnst", keys: "stand", note: "Clean 5-finger match" , grammar: { pos: "verb", forms: {"1":"stood","2":"standing","3":"stands","4":"stood"} } },
+            { word: "take", chord: "aekt", keys: "take", note: "Clean 4-finger match" , grammar: { pos: "verb", forms: {"1":"took","2":"taking","3":"takes","4":"taken"} } },
+            { word: "turn", chord: "ntu", keys: "tun", note: "r skipped (conflict on Left Index)" , grammar: { pos: "verb", forms: {"1":"turned","2":"turning","3":"turns","4":"turned"} } },
+            { word: "form", chord: "fmo", keys: "fom", note: "r skipped (conflict on Left Index)" , grammar: { pos: "verb", forms: {"1":"formed","2":"forming","3":"forms","4":"formed"} } },
+            { word: "press", chord: "eprs", keys: "pres", note: "s duplicate skipped" , grammar: { pos: "verb", forms: {"1":"pressed","2":"pressing","3":"presses","4":"pressed"} } },
+            { word: "act", chord: "act", keys: "act", note: "Clean 3-finger match" , grammar: { pos: "verb", forms: {"1":"acted","2":"acting","3":"acts","4":"acted"} } },
             { word: "a", chord: "1a", keys: "1a", note: "Single-letter rule (1 + a)" },
             { word: "actual", chord: "acltu", keys: "actual", note: "Root for actually" },
             { word: "actually", chord: "actually", keys: "actually", note: "Derived from actual" },
@@ -695,7 +814,7 @@
             { word: "wait", chord: "aitw", keys: "wait", note: "Root for waiting, waiter" },
             { word: "waiting", chord: "waiting", keys: "waiting", note: "Derived from wait" },
             { word: "and", chord: "adn", keys: "adn", note: "Clean 3-finger match" },
-            { word: "be", chord: "be", keys: "be", note: "Clean 2-finger match" },
+            { word: "be", chord: "be", keys: "be", note: "Clean 2-finger match" , grammar: { pos: "verb", forms: {"1":"am","2":"are","3":"is","4":"was","5":"were","6":"been","7":"being"} } },
             { word: "box", chord: "box", keys: "box", note: "Root for sandbox, boxes" },
             { word: "clear", chord: "aclr", keys: "aclr", note: "Root for clearing, clearly" },
             { word: "clearing", chord: "aclrg", keys: "aclrg", note: "Derived from clear" },
@@ -780,10 +899,10 @@
             { word: "形", chord: "2ginpx", keys: "2xing", pinyin: "xíng", english: "form", note: "Tone 2 + xing (form/shape)" },
             { word: "按", chord: "4an", keys: "4an", pinyin: "àn", english: "press", note: "Tone 4 + an (press)" },
             { word: "动", chord: "4dgnos", keys: "4dong", pinyin: "dòng", english: "act", note: "Tone 4 + dong (act/action)" },
-            { word: "am", chord: "am", keys: "am", note: "1st person be (I am)", english: "am" },
+            { word: "am", chord: "am", keys: "am", note: "1st person be (I am)", english: "am" , grammar: { pos: "verb", forms: {"1":"am","2":"are","3":"is","4":"was","5":"were","6":"been","7":"being"} } },
             { word: "andlook", chord: "adkln", keys: "adkln", note: "Look compound (and look)", english: "andlook" },
-            { word: "are", chord: "aer", keys: "aer", note: "2nd/plural be", english: "are" },
-            { word: "is", chord: "is", keys: "is", note: "3rd person be", english: "is" },
+            { word: "are", chord: "aer", keys: "aer", note: "2nd/plural be", english: "are" , grammar: { pos: "verb", forms: {"1":"am","2":"are","3":"is","4":"was","5":"were","6":"been","7":"being"} } },
+            { word: "is", chord: "is", keys: "is", note: "3rd person be", english: "is" , grammar: { pos: "verb", forms: {"1":"am","2":"are","3":"is","4":"was","5":"were","6":"been","7":"being"} } },
             { word: "middles", chord: "dilms", keys: "dilms", note: "Center / midpoint", english: "middles" },
             { word: "one", chord: "eno", keys: "eno", note: "Single entity / number one", english: "one" },
             { word: "remove", chord: "emov", keys: "emov", note: "Take away / delete", english: "remove" },
@@ -825,7 +944,7 @@
             { word: "温良", chord: "12aegilnw", keys: "1wen+2liang", pinyin: "wēnliáng", english: "gentle and kind", note: "Compound: warm + good (gentle)" },
             { word: "女士", chord: "134hinsu", keys: "3nu+14shi", pinyin: "nǚshì", english: "lady", note: "Compound: woman + scholar (lady/madam)" },
             // Requested Vocabulary Chords (Clean & Ergonomic)
-            { word: "add", chord: "2ad", keys: "2ad", note: "Clean 3-finger match (2 + a + d)" },
+            { word: "add", chord: "2ad", keys: "2ad", note: "Clean 3-finger match (2 + a + d)" , grammar: { pos: "verb", forms: {"1":"added","2":"adding","3":"adds","4":"addition"} } },
             { word: "all", chord: "2al", keys: "2al", note: "Clean 3-finger match (2 + a + l)" },
             { word: "beginner", chord: "begin", keys: "begin", note: "Clean 5-finger match (b-e-g-i-n)" },
             { word: "by", chord: "by", keys: "by", note: "Clean 2-finger match (Left Thumb B + Right Index Y)" },
@@ -833,10 +952,10 @@
             { word: "chinese", chord: "chins", keys: "chins", note: "Clean 5-finger match (c-h-i-n-s)" },
             { word: "here", chord: "ehr", keys: "her", note: "Clean 3-finger match (h-e-r)" },
             { word: "not", chord: "not", keys: "not", note: "Clean 3-finger match (n-o-t)" },
-            { word: "see", chord: "1es", keys: "1se", note: "Clean 3-finger match (1 + s + e)" },
+            { word: "see", chord: "1es", keys: "1se", note: "Clean 3-finger match (1 + s + e)" , grammar: { pos: "verb", forms: {"1":"saw","2":"seeing","3":"sees","4":"seen"} } },
             { word: "side", chord: "1dis", keys: "1sid", note: "Clean 4-finger match (1 + s + i + d)" },
             { word: "teachers", chord: "aehst", keys: "teahs", note: "Clean 5-finger match (t-e-a-h-s)" },
-            { word: "try", chord: "ty", keys: "ty", note: "Clean 2-finger match (Left Index T + Right Index Y)" },
+            { word: "try", chord: "ty", keys: "ty", note: "Clean 2-finger match (Left Index T + Right Index Y)" , grammar: { pos: "verb", forms: {"1":"tried","2":"trying","3":"tries"} } },
             { word: "two", chord: "otw", keys: "two", note: "Clean 3-finger match (t-w-o)" },
             // Additional Vocabulary Words (Clean, Ergonomic & Collision-Free)
             { word: "after", chord: "aft", keys: "aft", note: "Clean 3-finger match (a-f-t)" },
@@ -845,18 +964,18 @@
             { word: "dirrect", chord: "dirt", keys: "dirt", note: "Clean 4-finger match (d-i-r-t)" },
             { word: "doesn", chord: "dnos", keys: "dosn", note: "Clean 4-finger match (d-o-s-n)" },
             { word: "english", chord: "eglns", keys: "engls", note: "Clean 5-finger match (e-n-g-l-s)" },
-            { word: "fix", chord: "fix", keys: "fix", note: "Clean 3-finger match (f-i-x)" },
+            { word: "fix", chord: "fix", keys: "fix", note: "Clean 3-finger match (f-i-x)" , grammar: { pos: "verb", forms: {"1":"fixed","2":"fixing","3":"fixes"} } },
             { word: "grammar", chord: "agmr", keys: "gamr", note: "Clean 4-finger match (g-a-m-r)" },
             { word: "happens", chord: "aehnps", keys: "hapens", note: "Clean 6-finger match (h-a-p-e-n-s)" },
             { word: "hit", chord: "hit", keys: "hit", note: "Clean 3-finger match (h-i-t)" },
             { word: "need", chord: "den", keys: "ned", note: "Clean 3-finger match (n-e-d)" },
             { word: "numbers", chord: "benrsu", keys: "nubers", note: "Clean 6-finger match (n-u-b-e-r-s)" },
-            { word: "reason", chord: "aenors", keys: "reason", note: "Clean 6-finger match (r-e-a-s-o-n)" },
+            { word: "reason", chord: "aenors", keys: "reason", note: "Clean 6-finger match (r-e-a-s-o-n)" , grammar: { pos: "noun", forms: {"1":"reasons","2":"reason's"} } },
             { word: "some", chord: "emos", keys: "some", note: "Clean 4-finger match (s-o-m-e)" },
             { word: "special", chord: "aeps", keys: "specl", note: "Clean 4-finger match (s-p-e-l)" },
             { word: "t", chord: "1t", keys: "1t", note: "Single-letter rule (1 + t)" },
             { word: "triggers", chord: "girt", keys: "trig", note: "Clean 4-finger match (t-r-i-g)" },
-            { word: "work", chord: "korw", keys: "work", note: "Clean 4-finger match (w-o-r-k)" },
+            { word: "work", chord: "korw", keys: "work", note: "Clean 4-finger match (w-o-r-k)" , grammar: { pos: "verb", forms: {"1":"worked","2":"working","3":"works"} } },
             { word: "works", chord: "korsw", keys: "works", note: "work + s (w-o-r-k-s)" },
             // Additional Vocabulary Words (Clean, Ergonomic & Collision-Free)
             { word: "answer", chord: "anrs", keys: "ansr", note: "Clean 4-finger match (a-n-s-r)" },
@@ -1557,6 +1676,7 @@
         // 51 Steno Vocabulary Visual System: Perfect Emojis & Expressive Graphics
         const WORD_VISUALS = {
             "can": { emoji: "🥫", bg: "#0284c7", glow: "rgba(2, 132, 199, 0.4)", label: "CAN" },
+            "go": { emoji: "🟢", bg: "#22c55e", glow: "rgba(34, 197, 94, 0.4)", label: "GO" },
             "dog": { emoji: "🐶", bg: "#d97706", glow: "rgba(217, 119, 6, 0.4)", label: "DOG" },
             "fast": { emoji: "⚡", bg: "#eab308", glow: "rgba(234, 179, 8, 0.4)", label: "FAST" },
             "book": { emoji: "📖", bg: "#3b82f6", glow: "rgba(59, 130, 246, 0.4)", label: "BOOK" },
@@ -1901,6 +2021,119 @@
         };
 
         // 2-Step Morpheme Tree Structure
+
+        // ---- Chinese pictogram layer ---------------------------------------------------
+        // Chinese tokens used to render as an SVG of the character itself: it conveyed no
+        // meaning, and because its tile had no size it blew up to 300x300 inside the box.
+        // Each character now maps to a small pictogram that shows what the word means.
+        const CJK_PICTOGRAMS = {
+            "这": "👉",
+            "是": "✅",
+            "爱": "❤️",
+            "能": "💪",
+            "狗": "🐶",
+            "快": "⚡",
+            "书": "📖",
+            "档": "📁",
+            "命": "🌱",
+            "上": "⬆️",
+            "不": "❌",
+            "怎": "❓",
+            "谁": "🕵️",
+            "我": "🙋",
+            "他": "👨",
+            "她": "👩",
+            "它": "📦",
+            "们": "👥",
+            "你": "🫵",
+            "什": "🤔",
+            "时": "⏰",
+            "为": "💭",
+            "哪": "📍",
+            "走": "🚶",
+            "里": "📥",
+            "大": "🐘",
+            "步": "👣",
+            "如": "🔀",
+            "来": "🚪",
+            "给": "🎁",
+            "做": "🔨",
+            "有": "🫴",
+            "和": "🤝",
+            "想": "🌟",
+            "任": "🎲",
+            "问": "🗣️",
+            "窗": "🪟",
+            "那": "👆",
+            "机": "⚙️",
+            "连": "🔗",
+            "地": "🌍",
+            "关": "ℹ️",
+            "思": "🧠",
+            "请": "🙏",
+            "界": "🌏",
+            "速": "⏩",
+            "码": "🔢",
+            "脑": "💻",
+            "盘": "⌨️",
+            "功": "🔧",
+            "站": "🧍",
+            "拿": "🤲",
+            "转": "🔄",
+            "形": "🔷",
+            "按": "👇",
+            "动": "🎬",
+            "记": "📝",
+            "打": "🖋️",
+            "字": "🔤",
+            "目": "👁️",
+            "标": "🎯",
+            "么": "🔖",
+            "仅": "☝️",
+            "限": "🚫",
+            "温": "🌡️",
+            "良": "👍",
+            "女": "👩‍🦰",
+            "士": "🎓",
+            "指": "👈",
+            "所": "🏠",
+            "的": "🏷️",
+            "边": "📏",
+            "缘": "📐",
+            "情": "🎭",
+            "况": "📊",
+            "速记": "⏩",
+            "打字": "⌨️",
+            "速记打字": "⌨️",
+            "目标": "🎯",
+            "什么": "🤔",
+            "指标": "📈",
+            "所有": "🌐",
+            "边缘": "📏",
+            "情况": "🎭",
+            "仅限": "☝️",
+            "温良": "🕊️",
+            "女士": "👩‍💼",
+            "大步走": "🚶",
+            "目标是什么": "🎯",
+            "目标是什么？": "🎯",
+            "指标是什么": "📈",
+            "指标是什么？": "📈",
+            "仅限温良女士": "🕊️",
+            "边缘情况": "📏",
+            "所有的边缘情况": "📏"
+        };
+
+        for (const [cjkWord, cjkEmoji] of Object.entries(CJK_PICTOGRAMS)) {
+            const baseVis = WORD_VISUALS[cjkWord] || {};
+            WORD_VISUALS[cjkWord] = {
+                emoji: cjkEmoji,
+                bg: baseVis.bg || "#f59e0b",
+                glow: baseVis.glow || "rgba(245, 158, 11, 0.4)",
+                label: baseVis.label || cjkWord
+            };
+        }
+
         const MORPHEME_ROOTS_TREE = {
             "do": {
                         "lemma": "do",
@@ -1914,7 +2147,8 @@
                                                 "word": "undo",
                                                 "emoji": "↩️",
                                                 "note": "Reverse action",
-                                                "char": "撤销"
+                                                "char": "撤销",
+                                                "grammar": { pos: "verb", forms: {"1":"undid","2":"undoing","3":"undoes","4":"undone"} }
                                     },
                                     "er": {
                                                 "morpheme": "re-",
@@ -1922,7 +2156,8 @@
                                                 "word": "redo",
                                                 "emoji": "🔁",
                                                 "note": "Repeat action",
-                                                "char": "重做"
+                                                "char": "重做",
+                                                "grammar": { pos: "verb", forms: {"1":"redid","2":"redoing","3":"redoes","4":"redone"} }
                                     },
                                     "otu": {
                                                 "morpheme": "out-",
@@ -1930,7 +2165,8 @@
                                                 "word": "outdo",
                                                 "emoji": "🏆",
                                                 "note": "Surpass / excel",
-                                                "char": "超越"
+                                                "char": "超越",
+                                                "grammar": { pos: "verb", forms: {"1":"outdid","2":"outdoing","3":"outdoes","4":"outdone"} }
                                     }
                         }
             },
@@ -1946,7 +2182,8 @@
                                                 "word": "reconnect",
                                                 "emoji": "🔄",
                                                 "note": "Establish link again",
-                                                "char": "重新连接"
+                                                "char": "重新连接",
+                                                "grammar": { pos: "verb", forms: {"1":"reconnected","2":"reconnecting","3":"reconnects","4":"reconnected"} }
                                     },
                                     "dis": {
                                                 "morpheme": "dis-",
@@ -1954,7 +2191,8 @@
                                                 "word": "disconnect",
                                                 "emoji": "🔌",
                                                 "note": "Sever link",
-                                                "char": "断开"
+                                                "char": "断开",
+                                                "grammar": { pos: "verb", forms: {"1":"disconnected","2":"disconnecting","3":"disconnects","4":"disconnected"} }
                                     }
                         }
             },
@@ -1970,7 +2208,8 @@
                                                 "word": "income",
                                                 "emoji": "💵",
                                                 "note": "Earnings / money",
-                                                "char": "收入"
+                                                "char": "收入",
+                                                "grammar": { pos: "noun", forms: {"1":"incomes","2":"income's","3":"incomes'"} }
                                     },
                                     "otu": {
                                                 "morpheme": "out-",
@@ -1978,7 +2217,8 @@
                                                 "word": "outcome",
                                                 "emoji": "🎯",
                                                 "note": "Result / consequence",
-                                                "char": "结果"
+                                                "char": "结果",
+                                                "grammar": { pos: "noun", forms: {"1":"outcomes","2":"outcome's","3":"outcomes'"} }
                                     },
                                     "eov": {
                                                 "morpheme": "over-",
@@ -1986,7 +2226,8 @@
                                                 "word": "overcome",
                                                 "emoji": "🧗",
                                                 "note": "Prevail / conquer",
-                                                "char": "克服"
+                                                "char": "克服",
+                                                "grammar": { pos: "verb", forms: {"1":"overcame","2":"overcoming","3":"overcomes","4":"overcome"} }
                                     },
                                     "bce": {
                                                 "morpheme": "become",
@@ -1994,7 +2235,8 @@
                                                 "word": "become",
                                                 "emoji": "🌱",
                                                 "note": "Transform into",
-                                                "char": "成为"
+                                                "char": "成为",
+                                                "grammar": { pos: "verb", forms: {"1":"became","2":"becoming","3":"becomes","4":"become"} }
                                     }
                         }
             },
@@ -2010,7 +2252,8 @@
                                                 "word": "outwalk",
                                                 "emoji": "🏃‍♂️",
                                                 "note": "Walk faster than",
-                                                "char": "走得快"
+                                                "char": "走得快",
+                                                "grammar": { pos: "verb", forms: {"1":"outwalked","2":"outwalking","3":"outwalks","4":"outwalked"} }
                                     }
                         }
             },
@@ -2026,7 +2269,8 @@
                                                 "word": "refile",
                                                 "emoji": "📂",
                                                 "note": "File again",
-                                                "char": "重新归档"
+                                                "char": "重新归档",
+                                                "grammar": { pos: "verb", forms: {"1":"refiled","2":"refiling","3":"refiles","4":"refiled"} }
                                     }
                         }
             },
@@ -2042,7 +2286,8 @@
                                                 "word": "lifetime",
                                                 "emoji": "⏳",
                                                 "note": "Duration of life",
-                                                "char": "一生"
+                                                "char": "一生",
+                                                "grammar": { pos: "noun", forms: {"1":"lifetimes","2":"lifetime's","3":"lifetimes'"} }
                                     },
                                     "1aelns": {
                                                 "morpheme": "line",
@@ -2050,7 +2295,8 @@
                                                 "word": "lifeline",
                                                 "emoji": "🛟",
                                                 "note": "Vital support link",
-                                                "char": "生命线"
+                                                "char": "生命线",
+                                                "grammar": { pos: "noun", forms: {"1":"lifelines","2":"lifeline's","3":"lifelines'"} }
                                     }
                         }
             },
@@ -2059,6 +2305,7 @@
                         "chord": "dorw",
                         "emoji": "💬",
                         "note": "Unit of language",
+                        "grammar": { pos: "noun", forms: {"1":"words","2":"word's","3":"words'"} },
                         "derivatives": {
                                     "aps": {
                                                 "morpheme": "pass",
@@ -2066,7 +2313,8 @@
                                                 "word": "password",
                                                 "emoji": "🔑",
                                                 "note": "Secret security word",
-                                                "char": "密码"
+                                                "char": "密码",
+                                                "grammar": { pos: "noun", forms: {"1":"passwords","2":"password's","3":"passwords'"} }
                                     }
                         }
             },
@@ -2082,7 +2330,8 @@
                                                 "word": "recode",
                                                 "emoji": "🛠️",
                                                 "note": "Rewrite program code",
-                                                "char": "重新编码"
+                                                "char": "重新编码",
+                                                "grammar": { pos: "verb", forms: {"1":"recoded","2":"recoding","3":"recodes","4":"recoded"} }
                                     }
                         }
             },
@@ -2098,7 +2347,8 @@
                                                 "word": "understand",
                                                 "emoji": "💡",
                                                 "note": "Comprehend meaning",
-                                                "char": "理解"
+                                                "char": "理解",
+                                                "grammar": { pos: "verb", forms: {"1":"understood","2":"understanding","3":"understands","4":"understood"} }
                                     },
                                     "hitw": {
                                                 "morpheme": "with-",
@@ -2106,7 +2356,8 @@
                                                 "word": "withstand",
                                                 "emoji": "🛡️",
                                                 "note": "Endure / resist",
-                                                "char": "承受"
+                                                "char": "承受",
+                                                "grammar": { pos: "verb", forms: {"1":"withstood","2":"withstanding","3":"withstands","4":"withstood"} }
                                     },
                                     "otu": {
                                                 "morpheme": "out-",
@@ -2114,7 +2365,8 @@
                                                 "word": "outstand",
                                                 "emoji": "⭐",
                                                 "note": "Be prominent / excel",
-                                                "char": "杰出"
+                                                "char": "杰出",
+                                                "grammar": { pos: "verb", forms: {"1":"outstood","2":"outstanding","3":"outstands","4":"outstood"} }
                                     },
                                     "pu": {
                                                 "morpheme": "up-",
@@ -2122,7 +2374,8 @@
                                                 "word": "upstand",
                                                 "emoji": "🔝",
                                                 "note": "Stand erect / honest",
-                                                "char": "直立"
+                                                "char": "直立",
+                                                "grammar": { pos: "verb", forms: {"1":"upstood","2":"upstanding","3":"upstands","4":"upstood"} }
                                     }
                         }
             },
@@ -2138,7 +2391,8 @@
                                                 "word": "mistake",
                                                 "emoji": "⚠️",
                                                 "note": "Error / blunder",
-                                                "char": "错误"
+                                                "char": "错误",
+                                                "grammar": { pos: "verb", forms: {"1":"mistook","2":"mistaking","3":"mistakes","4":"mistaken"} }
                                     },
                                     "eov": {
                                                 "morpheme": "over-",
@@ -2146,7 +2400,8 @@
                                                 "word": "overtake",
                                                 "emoji": "🏎️",
                                                 "note": "Catch up and pass",
-                                                "char": "赶上"
+                                                "char": "赶上",
+                                                "grammar": { pos: "verb", forms: {"1":"overtook","2":"overtaking","3":"overtakes","4":"overtaken"} }
                                     },
                                     "in": {
                                                 "morpheme": "in-",
@@ -2154,7 +2409,8 @@
                                                 "word": "intake",
                                                 "emoji": "🥤",
                                                 "note": "Amount absorbed",
-                                                "char": "摄入"
+                                                "char": "摄入",
+                                                "grammar": { pos: "noun", forms: {"1":"intakes","2":"intake's","3":"intakes'"} }
                                     },
                                     "otu": {
                                                 "morpheme": "out-",
@@ -2162,7 +2418,8 @@
                                                 "word": "outtake",
                                                 "emoji": "🎬",
                                                 "note": "Discarded recorded scene",
-                                                "char": "排除"
+                                                "char": "排除",
+                                                "grammar": { pos: "noun", forms: {"1":"outtakes","2":"outtake's","3":"outtakes'"} }
                                     },
                                     "pu": {
                                                 "morpheme": "up-",
@@ -2170,7 +2427,8 @@
                                                 "word": "uptake",
                                                 "emoji": "📈",
                                                 "note": "Absorption rate",
-                                                "char": "吸收"
+                                                "char": "吸收",
+                                                "grammar": { pos: "noun", forms: {"1":"uptakes","2":"uptake's","3":"uptakes'"} }
                                     },
                                     "er": {
                                                 "morpheme": "re-",
@@ -2178,7 +2436,8 @@
                                                 "word": "retake",
                                                 "emoji": "🔁",
                                                 "note": "Take again",
-                                                "char": "重拍"
+                                                "char": "重拍",
+                                                "grammar": { pos: "verb", forms: {"1":"retook","2":"retaking","3":"retakes","4":"retaken"} }
                                     }
                         }
             },
@@ -2194,7 +2453,8 @@
                                                 "word": "return",
                                                 "emoji": "🔙",
                                                 "note": "Come back",
-                                                "char": "返回"
+                                                "char": "返回",
+                                                "grammar": { pos: "verb", forms: {"1":"returned","2":"returning","3":"returns","4":"returned"} }
                                     },
                                     "eov": {
                                                 "morpheme": "over-",
@@ -2202,7 +2462,8 @@
                                                 "word": "overturn",
                                                 "emoji": "🔁",
                                                 "note": "Flip over / reverse",
-                                                "char": "推翻"
+                                                "char": "推翻",
+                                                "grammar": { pos: "verb", forms: {"1":"overturned","2":"overturning","3":"overturns","4":"overturned"} }
                                     },
                                     "pu": {
                                                 "morpheme": "up-",
@@ -2210,7 +2471,8 @@
                                                 "word": "upturn",
                                                 "emoji": "📈",
                                                 "note": "Upward trend",
-                                                "char": "好转"
+                                                "char": "好转",
+                                                "grammar": { pos: "noun", forms: {"1":"upturns","2":"upturn's","3":"upturns'"} }
                                     },
                                     "otu": {
                                                 "morpheme": "out-",
@@ -2218,7 +2480,8 @@
                                                 "word": "outturn",
                                                 "emoji": "📦",
                                                 "note": "Production output",
-                                                "char": "产量"
+                                                "char": "产量",
+                                                "grammar": { pos: "noun", forms: {"1":"outturns","2":"outturn's","3":"outturns'"} }
                                     }
                         }
             },
@@ -2234,7 +2497,8 @@
                                                 "word": "reform",
                                                 "emoji": "🏛️",
                                                 "note": "Improve / reorganize",
-                                                "char": "改革"
+                                                "char": "改革",
+                                                "grammar": { pos: "verb", forms: {"1":"reformed","2":"reforming","3":"reforms","4":"reformed"} }
                                     },
                                     "1d": {
                                                 "morpheme": "de-",
@@ -2242,7 +2506,8 @@
                                                 "word": "deform",
                                                 "emoji": "💥",
                                                 "note": "Distort shape",
-                                                "char": "变形"
+                                                "char": "变形",
+                                                "grammar": { pos: "verb", forms: {"1":"deformed","2":"deforming","3":"deforms","4":"deformed"} }
                                     },
                                     "in": {
                                                 "morpheme": "in-",
@@ -2250,7 +2515,8 @@
                                                 "word": "inform",
                                                 "emoji": "📢",
                                                 "note": "Convey knowledge",
-                                                "char": "通知"
+                                                "char": "通知",
+                                                "grammar": { pos: "verb", forms: {"1":"informed","2":"informing","3":"informs","4":"informed"} }
                                     },
                                     "anst": {
                                                 "morpheme": "trans-",
@@ -2258,7 +2524,8 @@
                                                 "word": "transform",
                                                 "emoji": "🦋",
                                                 "note": "Change nature or form",
-                                                "char": "转换"
+                                                "char": "转换",
+                                                "grammar": { pos: "verb", forms: {"1":"transformed","2":"transforming","3":"transforms","4":"transformed"} }
                                     },
                                     "cno": {
                                                 "morpheme": "con-",
@@ -2266,7 +2533,8 @@
                                                 "word": "conform",
                                                 "emoji": "🤝",
                                                 "note": "Comply with rules",
-                                                "char": "遵守"
+                                                "char": "遵守",
+                                                "grammar": { pos: "verb", forms: {"1":"conformed","2":"conforming","3":"conforms","4":"conformed"} }
                                     }
                         }
             },
@@ -2282,7 +2550,8 @@
                                                 "word": "express",
                                                 "emoji": "💬",
                                                 "note": "Convey thought or feeling",
-                                                "char": "表达"
+                                                "char": "表达",
+                                                "grammar": { pos: "verb", forms: {"1":"expressed","2":"expressing","3":"expresses","4":"expressed"} }
                                     },
                                     "im": {
                                                 "morpheme": "im-",
@@ -2290,7 +2559,8 @@
                                                 "word": "impress",
                                                 "emoji": "🤩",
                                                 "note": "Make strong impact",
-                                                "char": "留下印象"
+                                                "char": "留下印象",
+                                                "grammar": { pos: "verb", forms: {"1":"impressed","2":"impressing","3":"impresses","4":"impressed"} }
                                     },
                                     "1d": {
                                                 "morpheme": "de-",
@@ -2298,7 +2568,8 @@
                                                 "word": "depress",
                                                 "emoji": "📉",
                                                 "note": "Push down / lower",
-                                                "char": "使沮丧"
+                                                "char": "使沮丧",
+                                                "grammar": { pos: "verb", forms: {"1":"depressed","2":"depressing","3":"depresses","4":"depressed"} }
                                     },
                                     "er": {
                                                 "morpheme": "re-",
@@ -2306,7 +2577,8 @@
                                                 "word": "repress",
                                                 "emoji": "🤐",
                                                 "note": "Hold back by force",
-                                                "char": "压制"
+                                                "char": "压制",
+                                                "grammar": { pos: "verb", forms: {"1":"repressed","2":"repressing","3":"represses","4":"repressed"} }
                                     },
                                     "op": {
                                                 "morpheme": "op-",
@@ -2314,7 +2586,8 @@
                                                 "word": "oppress",
                                                 "emoji": "⛓️",
                                                 "note": "Weigh down heavily",
-                                                "char": "压迫"
+                                                "char": "压迫",
+                                                "grammar": { pos: "verb", forms: {"1":"oppressed","2":"oppressing","3":"oppresses","4":"oppressed"} }
                                     }
                         }
             },
@@ -2330,7 +2603,8 @@
                                                 "word": "react",
                                                 "emoji": "⚡",
                                                 "note": "Respond to stimulus",
-                                                "char": "反应"
+                                                "char": "反应",
+                                                "grammar": { pos: "verb", forms: {"1":"reacted","2":"reacting","3":"reacts","4":"reacted"} }
                                     },
                                     "eint": {
                                                 "morpheme": "inter-",
@@ -2338,7 +2612,8 @@
                                                 "word": "interact",
                                                 "emoji": "🗣️",
                                                 "note": "Act reciprocally",
-                                                "char": "互动"
+                                                "char": "互动",
+                                                "grammar": { pos: "verb", forms: {"1":"interacted","2":"interacting","3":"interacts","4":"interacted"} }
                                     },
                                     "anst": {
                                                 "morpheme": "trans-",
@@ -2346,7 +2621,8 @@
                                                 "word": "transact",
                                                 "emoji": "💳",
                                                 "note": "Conduct business",
-                                                "char": "交易"
+                                                "char": "交易",
+                                                "grammar": { pos: "verb", forms: {"1":"transacted","2":"transacting","3":"transacts","4":"transacted"} }
                                     },
                                     "en": {
                                                 "morpheme": "en-",
@@ -2354,7 +2630,8 @@
                                                 "word": "enact",
                                                 "emoji": "📜",
                                                 "note": "Put into law or practice",
-                                                "char": "颁布"
+                                                "char": "颁布",
+                                                "grammar": { pos: "verb", forms: {"1":"enacted","2":"enacting","3":"enacts","4":"enacted"} }
                                     }
                         }
             },
@@ -3668,877 +3945,50 @@
         }
 };
 
-        const GRAMMAR_DATA = {
-        "can": {
-                "pos": "verb",
-                "forms": {
-                        "1": "could"
-                }
-        },
-        "walk": {
-                "pos": "verb",
-                "forms": {
-                        "1": "walked",
-                        "2": "walking",
-                        "3": "walks",
-                        "4": "walked"
-                }
-        },
-        "step": {
-                "pos": "verb",
-                "forms": {
-                        "1": "stepped",
-                        "2": "stepping",
-                        "3": "steps",
-                        "4": "stepped"
-                }
-        },
-        "come": {
-                "pos": "verb",
-                "forms": {
-                        "1": "came",
-                        "2": "coming",
-                        "3": "comes",
-                        "4": "come"
-                }
-        },
-        "do": {
-                "pos": "verb",
-                "forms": {
-                        "1": "did",
-                        "2": "doing",
-                        "3": "does",
-                        "4": "done"
-                }
-        },
-        "have": {
-                "pos": "verb",
-                "forms": {
-                        "1": "had",
-                        "2": "having",
-                        "3": "has",
-                        "4": "had"
-                }
-        },
-        "want": {
-                "pos": "verb",
-                "forms": {
-                        "1": "wanted",
-                        "2": "wanting",
-                        "3": "wants",
-                        "4": "wanted"
-                }
-        },
-        "ask": {
-                "pos": "verb",
-                "forms": {
-                        "1": "asked",
-                        "2": "asking",
-                        "3": "asks",
-                        "4": "asked"
-                }
-        },
-        "connect": {
-                "pos": "verb",
-                "forms": {
-                        "1": "connected",
-                        "2": "connecting",
-                        "3": "connects",
-                        "4": "connected"
-                }
-        },
-        "think": {
-                "pos": "verb",
-                "forms": {
-                        "1": "thought",
-                        "2": "thinking",
-                        "3": "thinks",
-                        "4": "thought"
-                }
-        },
-        "code": {
-                "pos": "verb",
-                "forms": {
-                        "1": "coded",
-                        "2": "coding",
-                        "3": "codes",
-                        "4": "coded"
-                }
-        },
-        "stand": {
-                "pos": "verb",
-                "forms": {
-                        "1": "stood",
-                        "2": "standing",
-                        "3": "stands",
-                        "4": "stood"
-                }
-        },
-        "take": {
-                "pos": "verb",
-                "forms": {
-                        "1": "took",
-                        "2": "taking",
-                        "3": "takes",
-                        "4": "taken"
-                }
-        },
-        "turn": {
-                "pos": "verb",
-                "forms": {
-                        "1": "turned",
-                        "2": "turning",
-                        "3": "turns",
-                        "4": "turned"
-                }
-        },
-        "form": {
-                "pos": "verb",
-                "forms": {
-                        "1": "formed",
-                        "2": "forming",
-                        "3": "forms",
-                        "4": "formed"
-                }
-        },
-        "press": {
-                "pos": "verb",
-                "forms": {
-                        "1": "pressed",
-                        "2": "pressing",
-                        "3": "presses",
-                        "4": "pressed"
-                }
-        },
-        "act": {
-                "pos": "verb",
-                "forms": {
-                        "1": "acted",
-                        "2": "acting",
-                        "3": "acts",
-                        "4": "acted"
-                }
-        },
-        "dog": {
-                "pos": "noun",
-                "forms": {
-                        "1": "dogs",
-                        "2": "dog's",
-                        "3": "dogs'"
-                }
-        },
-        "book": {
-                "pos": "noun",
-                "forms": {
-                        "1": "books",
-                        "2": "book's",
-                        "3": "books'"
-                }
-        },
-        "file": {
-                "pos": "noun",
-                "forms": {
-                        "1": "files",
-                        "2": "file's",
-                        "3": "files'"
-                }
-        },
-        "life": {
-                "pos": "noun",
-                "forms": {
-                        "1": "lives",
-                        "2": "life's",
-                        "3": "lives'"
-                }
-        },
-        "window": {
-                "pos": "noun",
-                "forms": {
-                        "1": "windows",
-                        "2": "window's",
-                        "3": "windows'"
-                }
-        },
-        "machine": {
-                "pos": "noun",
-                "forms": {
-                        "1": "machines",
-                        "2": "machine's",
-                        "3": "machines'"
-                }
-        },
-        "world": {
-                "pos": "noun",
-                "forms": {
-                        "1": "worlds",
-                        "2": "world's",
-                        "3": "worlds'"
-                }
-        },
-        "computer": {
-                "pos": "noun",
-                "forms": {
-                        "1": "computers",
-                        "2": "computer's",
-                        "3": "computers'"
-                }
-        },
-        "keyboard": {
-                "pos": "noun",
-                "forms": {
-                        "1": "keyboards",
-                        "2": "keyboard's",
-                        "3": "keyboards'"
-                }
-        },
-        "function": {
-                "pos": "noun",
-                "forms": {
-                        "1": "functions",
-                        "2": "function's",
-                        "3": "functions'"
-                }
-        },
-        "steno": {
-                "pos": "noun",
-                "forms": {
-                        "1": "stenos",
-                        "2": "steno's"
-                }
-        },
-        "word": {
-                "pos": "noun",
-                "forms": {
-                        "1": "words",
-                        "2": "word's",
-                        "3": "words'"
-                }
-        },
-        "fast": {
-                "pos": "adjective",
-                "forms": {
-                        "1": "faster",
-                        "2": "fastest"
-                }
-        },
-        "big": {
-                "pos": "adjective",
-                "forms": {
-                        "1": "bigger",
-                        "2": "biggest"
-                }
-        },
-        "local": {
-                "pos": "adjective",
-                "forms": {
-                        "1": "more local",
-                        "2": "most local",
-                        "3": "locally"
-                }
-        },
-        "i": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "me",
-                        "2": "my",
-                        "3": "myself",
-                        "4": "mine"
-                }
-        },
-        "he": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "him",
-                        "2": "his",
-                        "3": "himself"
-                }
-        },
-        "she": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "her",
-                        "2": "her",
-                        "3": "herself",
-                        "4": "hers"
-                }
-        },
-        "it": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "it",
-                        "2": "its",
-                        "3": "itself"
-                }
-        },
-        "we": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "us",
-                        "2": "our",
-                        "3": "ourselves",
-                        "4": "ours"
-                }
-        },
-        "they": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "them",
-                        "2": "their",
-                        "3": "themselves",
-                        "4": "theirs"
-                }
-        },
-        "you": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "you",
-                        "2": "your",
-                        "3": "yourself",
-                        "4": "yours"
-                }
-        },
-        "who": {
-                "pos": "pronoun",
-                "forms": {
-                        "1": "whom",
-                        "2": "whose"
-                }
-        },
-        "undo": {
-                "pos": "verb",
-                "forms": {
-                        "1": "undid",
-                        "2": "undoing",
-                        "3": "undoes",
-                        "4": "undone"
-                }
-        },
-        "redo": {
-                "pos": "verb",
-                "forms": {
-                        "1": "redid",
-                        "2": "redoing",
-                        "3": "redoes",
-                        "4": "redone"
-                }
-        },
-        "outdo": {
-                "pos": "verb",
-                "forms": {
-                        "1": "outdid",
-                        "2": "outdoing",
-                        "3": "outdoes",
-                        "4": "outdone"
-                }
-        },
-        "reconnect": {
-                "pos": "verb",
-                "forms": {
-                        "1": "reconnected",
-                        "2": "reconnecting",
-                        "3": "reconnects",
-                        "4": "reconnected"
-                }
-        },
-        "disconnect": {
-                "pos": "verb",
-                "forms": {
-                        "1": "disconnected",
-                        "2": "disconnecting",
-                        "3": "disconnects",
-                        "4": "disconnected"
-                }
-        },
-        "overcome": {
-                "pos": "verb",
-                "forms": {
-                        "1": "overcame",
-                        "2": "overcoming",
-                        "3": "overcomes",
-                        "4": "overcome"
-                }
-        },
-        "become": {
-                "pos": "verb",
-                "forms": {
-                        "1": "became",
-                        "2": "becoming",
-                        "3": "becomes",
-                        "4": "become"
-                }
-        },
-        "outwalk": {
-                "pos": "verb",
-                "forms": {
-                        "1": "outwalked",
-                        "2": "outwalking",
-                        "3": "outwalks",
-                        "4": "outwalked"
-                }
-        },
-        "refile": {
-                "pos": "verb",
-                "forms": {
-                        "1": "refiled",
-                        "2": "refiling",
-                        "3": "refiles",
-                        "4": "refiled"
-                }
-        },
-        "recode": {
-                "pos": "verb",
-                "forms": {
-                        "1": "recoded",
-                        "2": "recoding",
-                        "3": "recodes",
-                        "4": "recoded"
-                }
-        },
-        "understand": {
-                "pos": "verb",
-                "forms": {
-                        "1": "understood",
-                        "2": "understanding",
-                        "3": "understands",
-                        "4": "understood"
-                }
-        },
-        "withstand": {
-                "pos": "verb",
-                "forms": {
-                        "1": "withstood",
-                        "2": "withstanding",
-                        "3": "withstands",
-                        "4": "withstood"
-                }
-        },
-        "outstand": {
-                "pos": "verb",
-                "forms": {
-                        "1": "outstood",
-                        "2": "outstanding",
-                        "3": "outstands",
-                        "4": "outstood"
-                }
-        },
-        "upstand": {
-                "pos": "verb",
-                "forms": {
-                        "1": "upstood",
-                        "2": "upstanding",
-                        "3": "upstands",
-                        "4": "upstood"
-                }
-        },
-        "mistake": {
-                "pos": "verb",
-                "forms": {
-                        "1": "mistook",
-                        "2": "mistaking",
-                        "3": "mistakes",
-                        "4": "mistaken"
-                }
-        },
-        "overtake": {
-                "pos": "verb",
-                "forms": {
-                        "1": "overtook",
-                        "2": "overtaking",
-                        "3": "overtakes",
-                        "4": "overtaken"
-                }
-        },
-        "retake": {
-                "pos": "verb",
-                "forms": {
-                        "1": "retook",
-                        "2": "retaking",
-                        "3": "retakes",
-                        "4": "retaken"
-                }
-        },
-        "return": {
-                "pos": "verb",
-                "forms": {
-                        "1": "returned",
-                        "2": "returning",
-                        "3": "returns",
-                        "4": "returned"
-                }
-        },
-        "overturn": {
-                "pos": "verb",
-                "forms": {
-                        "1": "overturned",
-                        "2": "overturning",
-                        "3": "overturns",
-                        "4": "overturned"
-                }
-        },
-        "upturn": {
-                "pos": "verb",
-                "forms": {
-                        "1": "upturned",
-                        "2": "upturning",
-                        "3": "upturns",
-                        "4": "upturned"
-                }
-        },
-        "reform": {
-                "pos": "verb",
-                "forms": {
-                        "1": "reformed",
-                        "2": "reforming",
-                        "3": "reforms",
-                        "4": "reformed"
-                }
-        },
-        "deform": {
-                "pos": "verb",
-                "forms": {
-                        "1": "deformed",
-                        "2": "deforming",
-                        "3": "deforms",
-                        "4": "deformed"
-                }
-        },
-        "inform": {
-                "pos": "verb",
-                "forms": {
-                        "1": "informed",
-                        "2": "informing",
-                        "3": "informs",
-                        "4": "informed"
-                }
-        },
-        "transform": {
-                "pos": "verb",
-                "forms": {
-                        "1": "transformed",
-                        "2": "transforming",
-                        "3": "transforms",
-                        "4": "transformed"
-                }
-        },
-        "conform": {
-                "pos": "verb",
-                "forms": {
-                        "1": "conformed",
-                        "2": "conforming",
-                        "3": "conforms",
-                        "4": "conformed"
-                }
-        },
-        "express": {
-                "pos": "verb",
-                "forms": {
-                        "1": "expressed",
-                        "2": "expressing",
-                        "3": "expresses",
-                        "4": "expressed"
-                }
-        },
-        "impress": {
-                "pos": "verb",
-                "forms": {
-                        "1": "impressed",
-                        "2": "impressing",
-                        "3": "impresses",
-                        "4": "impressed"
-                }
-        },
-        "depress": {
-                "pos": "verb",
-                "forms": {
-                        "1": "depressed",
-                        "2": "depressing",
-                        "3": "depresses",
-                        "4": "depressed"
-                }
-        },
-        "repress": {
-                "pos": "verb",
-                "forms": {
-                        "1": "repressed",
-                        "2": "repressing",
-                        "3": "represses",
-                        "4": "repressed"
-                }
-        },
-        "oppress": {
-                "pos": "verb",
-                "forms": {
-                        "1": "oppressed",
-                        "2": "oppressing",
-                        "3": "oppresses",
-                        "4": "oppressed"
-                }
-        },
-        "react": {
-                "pos": "verb",
-                "forms": {
-                        "1": "reacted",
-                        "2": "reacting",
-                        "3": "reacts",
-                        "4": "reacted"
-                }
-        },
-        "interact": {
-                "pos": "verb",
-                "forms": {
-                        "1": "interacted",
-                        "2": "interacting",
-                        "3": "interacts",
-                        "4": "interacted"
-                }
-        },
-        "transact": {
-                "pos": "verb",
-                "forms": {
-                        "1": "transacted",
-                        "2": "transacting",
-                        "3": "transacts",
-                        "4": "transacted"
-                }
-        },
-        "enact": {
-                "pos": "verb",
-                "forms": {
-                        "1": "enacted",
-                        "2": "enacting",
-                        "3": "enacts",
-                        "4": "enacted"
-                }
-        },
-        "income": {
-                "pos": "noun",
-                "forms": {
-                        "1": "incomes",
-                        "2": "income's",
-                        "3": "incomes'"
-                }
-        },
-        "outcome": {
-                "pos": "noun",
-                "forms": {
-                        "1": "outcomes",
-                        "2": "outcome's",
-                        "3": "outcomes'"
-                }
-        },
-        "lifetime": {
-                "pos": "noun",
-                "forms": {
-                        "1": "lifetimes",
-                        "2": "lifetime's",
-                        "3": "lifetimes'"
-                }
-        },
-        "lifeline": {
-                "pos": "noun",
-                "forms": {
-                        "1": "lifelines",
-                        "2": "lifeline's",
-                        "3": "lifelines'"
-                }
-        },
-        "password": {
-                "pos": "noun",
-                "forms": {
-                        "1": "passwords",
-                        "2": "password's",
-                        "3": "passwords'"
-                }
-        },
-        "intake": {
-                "pos": "noun",
-                "forms": {
-                        "1": "intakes",
-                        "2": "intake's",
-                        "3": "intakes'"
-                }
-        },
-        "outtake": {
-                "pos": "noun",
-                "forms": {
-                        "1": "outtakes",
-                        "2": "outtake's",
-                        "3": "outtakes'"
-                }
-        },
-        "uptake": {
-                "pos": "noun",
-                "forms": {
-                        "1": "uptakes",
-                        "2": "uptake's",
-                        "3": "uptakes'"
-                }
-        },
-        "outturn": {
-                "pos": "noun",
-                "forms": {
-                        "1": "outturns",
-                        "2": "outturn's",
-                        "3": "outturns'"
-                }
-        },
-        "be": {
-                "pos": "verb",
-                "forms": {
-                        "1": "am",
-                        "2": "are",
-                        "3": "is",
-                        "4": "was",
-                        "5": "were",
-                        "6": "been",
-                        "7": "being"
-                }
-        },
-        "is": {
-                "pos": "verb",
-                "forms": {
-                        "1": "am",
-                        "2": "are",
-                        "3": "is",
-                        "4": "was",
-                        "5": "were",
-                        "6": "been",
-                        "7": "being"
-                }
-        },
-        "am": {
-                "pos": "verb",
-                "forms": {
-                        "1": "am",
-                        "2": "are",
-                        "3": "is",
-                        "4": "was",
-                        "5": "were",
-                        "6": "been",
-                        "7": "being"
-                }
-        },
-        "are": {
-                "pos": "verb",
-                "forms": {
-                        "1": "am",
-                        "2": "are",
-                        "3": "is",
-                        "4": "was",
-                        "5": "were",
-                        "6": "been",
-                        "7": "being"
-                }
-        },
-        "see": {
-                "pos": "verb",
-                "forms": {
-                        "1": "saw",
-                        "2": "seeing",
-                        "3": "sees",
-                        "4": "seen"
-                }
-        },
-        "work": {
-                "pos": "verb",
-                "forms": {
-                        "1": "worked",
-                        "2": "working",
-                        "3": "works"
-                }
-        },
-        "happen": {
-                "pos": "verb",
-                "forms": {
-                        "1": "happened",
-                        "2": "happening",
-                        "3": "happens"
-                }
-        },
-        "try": {
-                "pos": "verb",
-                "forms": {
-                        "1": "tried",
-                        "2": "trying",
-                        "3": "tries"
-                }
-        },
-        "add": {
-                "pos": "verb",
-                "forms": {
-                        "1": "added",
-                        "2": "adding",
-                        "3": "adds",
-                        "4": "addition"
-                }
-        },
-        "trigger": {
-                "pos": "verb",
-                "forms": {
-                        "1": "triggered",
-                        "2": "triggering",
-                        "3": "triggers"
-                }
-        },
-        "fix": {
-                "pos": "verb",
-                "forms": {
-                        "1": "fixed",
-                        "2": "fixing",
-                        "3": "fixes"
-                }
-        },
-        "number": {
-                "pos": "noun",
-                "forms": {
-                        "1": "numbers",
-                        "2": "number's"
-                }
-        },
-        "character": {
-                "pos": "noun",
-                "forms": {
-                        "1": "characters",
-                        "2": "character's"
-                }
-        },
-        "teacher": {
-                "pos": "noun",
-                "forms": {
-                        "1": "teachers",
-                        "2": "teacher's"
-                }
-        },
-        "reason": {
-                "pos": "noun",
-                "forms": {
-                        "1": "reasons",
-                        "2": "reason's"
-                }
+        // ---------------------------------------------------------------------------
+        // Grammar lives on the word records themselves - exactly one place per word:
+        //   STENO_DICTIONARY[i].grammar                     chorded words
+        //   MORPHEME_ROOTS_TREE[...].grammar                root words
+        //   MORPHEME_ROOTS_TREE[...].derivatives.d.grammar  compounds
+        // GRAMMAR_DATA is only an index built from those records at load, so the
+        // tables can never drift apart again (upturn used to disagree with itself).
+        // ---------------------------------------------------------------------------
+        const EXTRA_GRAMMAR = {
+            "happen": { pos: "verb", forms: {"1":"happened","2":"happening","3":"happens"} },
+            "trigger": { pos: "verb", forms: {"1":"triggered","2":"triggering","3":"triggers"} },
+            "number": { pos: "noun", forms: {"1":"numbers","2":"number's"} },
+            "character": { pos: "noun", forms: {"1":"characters","2":"character's"} },
+            "teacher": { pos: "noun", forms: {"1":"teachers","2":"teacher's"} }
+        };
+
+        const GRAMMAR_DATA = {};
+        for (const entry of STENO_DICTIONARY) {
+            if (entry.grammar) GRAMMAR_DATA[String(entry.word).toLowerCase()] = entry.grammar;
         }
-};
+        for (const root of Object.values(MORPHEME_ROOTS_TREE)) {
+            if (root.grammar) GRAMMAR_DATA[String(root.lemma).toLowerCase()] = root.grammar;
+            for (const deriv of Object.values(root.derivatives || {})) {
+                const w = String(deriv.word || "").toLowerCase();
+                if (deriv.grammar && w) GRAMMAR_DATA[w] = deriv.grammar;
+            }
+        }
+        Object.assign(GRAMMAR_DATA, EXTRA_GRAMMAR);
 
         function getWordGrammar(word) {
             if (!word) return null;
             const lower = word.toLowerCase().trim();
+
+            // Chinese characters take no English inflection.
+            if (/[\u4e00-\u9fff]/.test(lower)) return null;
+
+            // A paradigm exists only when the word's record declares one. Nothing is
+            // invented: a word with no stored forms simply cannot be inflected.
             if (GRAMMAR_DATA[lower]) return GRAMMAR_DATA[lower];
-            
+
             const lemma = INFLECTION_TO_LEMMA[lower];
             if (lemma && GRAMMAR_DATA[lemma]) return GRAMMAR_DATA[lemma];
 
-            // Smart regular fallback:
-            const endsE = lower.endsWith('e');
-            const endsY = lower.endsWith('y') && !/[aeiou]y$/.test(lower);
-            const rootY = endsY ? lower.slice(0, -1) : lower;
-            return {
-                pos: 'verb',
-                forms: {
-                    '1': endsY ? rootY + 'ied' : (endsE ? lower + 'd' : lower + 'ed'),
-                    '2': endsE ? lower.slice(0, -1) + 'ing' : lower + 'ing',
-                    '3': endsY ? rootY + 'ies' : ((lower.endsWith('s') || lower.endsWith('sh') || lower.endsWith('ch') || lower.endsWith('x')) ? lower + 'es' : lower + 's'),
-                    '4': endsY ? rootY + 'ied' : (endsE ? lower + 'd' : lower + 'ed')
-                }
-            };
+            return null;
         }
 
         // Reverse map from inflected forms back to base lemmas for SVG/visual inheritance
@@ -4550,6 +4000,7 @@
                 }
             }
         }
+
 
         class StenoTutorApp {
             constructor() {
@@ -4574,13 +4025,15 @@
                 this.showHint = false;
 
                 // Typing Box output mode: 'words', 'svg', 'combo'
-                this.editorOutputMode = 'words';
+                this.editorOutputMode = 'combo';
 
                 // Live physical key tracking
                 this.pressedKeys = new Set();
                 this.chordHistory = new Set();
                 this.keyPressOrder = [];
                 this.currentStrokeChars = [];
+                this.strokeStartedAt = 0;
+                this.strokeLastKeyAt = 0;
 
                 // Stats
                 this.score = 0;
@@ -4624,15 +4077,42 @@
                 return null;
             }
 
+            // Refuse an inflection cleanly: keep the word untouched, explain, consume the key.
+            rejectGrammar(word, num = null) {
+                const toast = document.getElementById('sandbox-toast');
+                if (toast) {
+                    const why = num
+                        ? `"${word}" has no form for key ${num}`
+                        : `"${word}" has no inflections stored`;
+                    toast.innerText = `🚫 [No Grammar] ${why}`;
+                    toast.className = "text-xs md:text-sm font-bold text-slate-300 bg-slate-800 border border-slate-700 px-6 py-2 rounded-xl text-center";
+                }
+                this.flashEditor('err');
+                this.updateCaret();
+                return true;
+            }
+
             tryApplyGrammarModifier(num) {
                 const prec = this.getPrecedingWord();
                 if (!prec || !prec.word) return false;
 
                 const originalWord = prec.word.toLowerCase().trim();
-                const baseLemma = this.activeGrammarLemma || INFLECTION_TO_LEMMA[originalWord] || originalWord;
-                const grammar = getWordGrammar(baseLemma) || getWordGrammar(originalWord);
+                const rawToken = (prec.element && prec.element.dataset && prec.element.dataset.word) || prec.word || '';
 
-                if (!grammar || !grammar.forms || !grammar.forms[num]) return false;
+                // A Chinese tile exposes its English gloss ("this"), but the word on
+                // screen is the character - it takes no English inflection at all.
+                if (/[\u4e00-\u9fff]/.test(rawToken)) return this.rejectGrammar(rawToken);
+
+                // Always inflect the word that is actually in the box. A compound
+                // ("undo") must never inherit its root's paradigm ("do" -> "doing").
+                const grammar = getWordGrammar(originalWord)
+                    || (this.activeGrammarLemma && this.activeGrammarLemma !== originalWord
+                        ? getWordGrammar(this.activeGrammarLemma)
+                        : null);
+
+                if (!grammar || !grammar.forms || !grammar.forms[num]) {
+                    return this.rejectGrammar(prec.word, grammar ? num : null);
+                }
 
                 const newWord = grammar.forms[num];
                 if (newWord.toLowerCase() === originalWord) return false;
@@ -4650,7 +4130,7 @@
                 }
 
                 this.activeGrammarWord = newWord;
-                this.activeGrammarLemma = baseLemma;
+                this.activeGrammarLemma = INFLECTION_TO_LEMMA[newWord.toLowerCase()] || originalWord;
                 this.activeGrammar = grammar;
 
                 sound.playSuccess();
@@ -4703,7 +4183,7 @@
                 this.setEditorOutputMode(nextMode);
             }
 
-            setEditorOutputMode(mode) {
+            setEditorOutputMode(mode, silent = false) {
                 this.editorOutputMode = mode;
                 const modeLabels = {
                     'words': 'English Words [ENG]',
@@ -4724,7 +4204,7 @@
                 });
 
                 const toast = document.getElementById('sandbox-toast');
-                if (toast && modeLabels[mode]) {
+                if (toast && modeLabels[mode] && !silent) {
                     toast.innerText = `🔀 [Output Mode] ${modeLabels[mode]} (Shortcut: Alt+M to cycle, or Alt+1/2/3/4)`;
                     toast.className = "text-xs md:text-sm font-bold text-indigo-300 bg-indigo-500/20 border border-indigo-500/40 px-6 py-2 rounded-xl text-center shadow transition-all";
                 }
@@ -4774,7 +4254,7 @@
                 if (editor) {
                     editor.innerHTML = `
                         <span id="editor-placeholder" class="text-slate-600 font-mono text-xs md:text-sm select-none pointer-events-none">
-                            Type regular letters normally or strike steno chords here... (Press Space for spaces, Backspace to delete)
+                            
                         </span>
                         <span id="editor-caret" class="inline-block w-0.5 h-5 bg-indigo-400 animate-pulse ml-0.5 align-middle rounded pointer-events-none select-none"></span>
                     `;
@@ -5052,6 +4532,8 @@
                 for (let token of tokens) {
                     token = token.trim();
                     if (!token) continue;
+                    // Debris from a failed chord (e.g. "seh9") is not a word - never track it.
+                    if (/[0-9]/.test(token) || token.length > 40) continue;
                     const lower = token.toLowerCase();
 
                     // If Chinese sequence:
@@ -5395,6 +4877,83 @@
                 this.updateCaret();
                 editor.scrollTop = editor.scrollHeight;
             }
+            // ===== Minimal shell controls ==============================
+            renderShortcuts() {
+                const grid = document.getElementById('shortcuts-grid');
+                if (!grid || grid.dataset.ready) return;
+                const rows = [
+                    ["Output: Words · 汉字 · SVG · Combo", "Alt+1 … Alt+4"],
+                    ["Cycle output mode", "Alt+M"],
+                    ["Focus the typing box", "Alt+S · Ctrl+/"],
+                    ["Copy English words", "Ctrl+C"],
+                    ["Copy English only (no CJK)", "Ctrl+Shift+C"],
+                    ["Paste", "Ctrl+V"],
+                    ["Clear the box", "Ctrl+L · Esc"],
+                    ["Copy unmapped list", "Alt+U"],
+                    ["Open unmapped list", "Alt+Shift+U"],
+                    ["Full interface on / off", "Alt+F"],
+                    ["Browser fullscreen", "Alt+Shift+F"],
+                    ["This shortcuts card", "? · Alt+K"],
+                    ["Commit word / disarm root", "Space"],
+                    ["Grammar inflection", "1 … 4"],
+                    ["Undo word / split compound", "Backspace"]
+                ];
+                grid.innerHTML = rows
+                    .map(([label, keys]) => `<div class="sc-row"><span>${label}</span><kbd>${keys}</kbd></div>`)
+                    .join('');
+                grid.dataset.ready = '1';
+            }
+
+            toggleShortcuts(force) {
+                const el = document.getElementById('shortcuts-overlay');
+                if (!el) return;
+                this.renderShortcuts();
+                const show = (typeof force === 'boolean') ? force : el.classList.contains('hidden');
+                el.classList.toggle('hidden', !show);
+            }
+
+            toggleFullMode() {
+                document.body.classList.toggle('minimal');
+                this.updateCaret();
+            }
+
+            toggleFullscreen() {
+                try {
+                    if (!document.fullscreenElement) {
+                        const p = document.documentElement.requestFullscreen();
+                        if (p && p.catch) p.catch(() => {});
+                    } else {
+                        const p = document.exitFullscreen();
+                        if (p && p.catch) p.catch(() => {});
+                    }
+                } catch (err) { /* fullscreen unavailable */ }
+            }
+
+            flashEditor(kind) {
+                const editor = document.getElementById('sandbox-editor');
+                if (!editor) return;
+                editor.classList.remove('flash-ok', 'flash-err');
+                void editor.offsetWidth;
+                editor.classList.add(kind === 'err' ? 'flash-err' : 'flash-ok');
+                clearTimeout(this._flashTimer);
+                this._flashTimer = setTimeout(() => editor.classList.remove('flash-ok', 'flash-err'), 450);
+            }
+
+            initToastFlash() {
+                const toast = document.getElementById('sandbox-toast');
+                const editor = document.getElementById('sandbox-editor');
+                if (!toast || !editor || toast.dataset.flashHooked) return;
+                toast.dataset.flashHooked = '1';
+                const obs = new MutationObserver(() => {
+                    const text = (toast.innerText || '').trim();
+                    if (!text) return;
+                    if (/^⌨️ Typing/.test(text)) return;
+                    const bad = /Unmapped|No match|⚠️|Need '|not in dictionary/i.test(text);
+                    this.flashEditor(bad ? 'err' : 'ok');
+                });
+                obs.observe(toast, { childList: true, characterData: true, subtree: true });
+            }
+
 
             init() {
                 this.renderGuide();
@@ -5403,8 +4962,12 @@
                 this.populateWordSelect();
                 this.loadCurrentWord();
                 this.setMode('sandbox');
+                this.setEditorOutputMode(this.editorOutputMode, true);
+                const subtitle = document.getElementById('app-subtitle');
+                if (subtitle && Array.isArray(this.dictionary)) subtitle.textContent = `Order-Independent 10-Finger Chording System (${this.dictionary.length} words)`;
                 this.setupKeyboardListeners();
                 this.updateCaret();
+                this.initToastFlash();
             }
 
             setMode(newMode) {
@@ -5882,6 +5445,27 @@
             // Keyboard Listeners
             setupKeyboardListeners() {
                 window.addEventListener('keydown', (e) => {
+                    // One key for all shortcuts
+                    if (e.key === '?' || (e.altKey && e.key.toLowerCase() === 'k')) {
+                        e.preventDefault();
+                        this.toggleShortcuts();
+                        return;
+                    }
+
+                    // Browser fullscreen: Alt+Shift+F
+                    if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+                        e.preventDefault();
+                        this.toggleFullscreen();
+                        return;
+                    }
+
+                    // Full interface / minimal interface: Alt+F
+                    if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'f') {
+                        e.preventDefault();
+                        this.toggleFullMode();
+                        return;
+                    }
+
                     // Shortcut to move cursor directly to Sandbox editor: Alt+S or Ctrl+/ or Alt+Enter
                     if ((e.altKey && e.key.toLowerCase() === 's') || ((e.ctrlKey || e.metaKey) && e.key === '/') || (e.altKey && e.key === 'Enter')) {
                         e.preventDefault();
@@ -5952,6 +5536,11 @@
 
                     // Escape key closes modal or clears Sandbox
                     if (e.key === 'Escape') {
+                        const sc = document.getElementById('shortcuts-overlay');
+                        if (sc && !sc.classList.contains('hidden')) {
+                            this.toggleShortcuts(false);
+                            return;
+                        }
                         const modal = document.getElementById('unmapped-modal');
                         if (modal && !modal.classList.contains('hidden')) {
                             this.toggleMissingWordsModal();
@@ -6075,6 +5664,9 @@
                         this.keyPressOrder.push(e.key);
 
                         if (this.mode === 'sandbox') {
+                            const strokeNow = performance.now();
+                            if (this.currentStrokeChars.length === 0) this.strokeStartedAt = strokeNow;
+                            this.strokeLastKeyAt = strokeNow;
                             this.typeCharacter(e.key);
                             this.currentStrokeChars.push(e.key);
                             const toast = document.getElementById('sandbox-toast');
@@ -6103,12 +5695,15 @@
                         const keysOnly = Array.from(this.chordHistory).filter(k => k !== 'space').sort().join('');
                         const order = [...this.keyPressOrder];
                         const strokeCount = this.currentStrokeChars.length;
+                        const strokeSpan = (this.strokeStartedAt && this.strokeLastKeyAt) ? (this.strokeLastKeyAt - this.strokeStartedAt) : 0;
+                        this.strokeStartedAt = 0;
+                        this.strokeLastKeyAt = 0;
                         this.currentStrokeChars = [];
                         this.chordHistory.clear();
                         this.keyPressOrder = [];
 
                         if (keysOnly.length > 0) {
-                            this.onChordRelease(keysOnly, hasSpace, order, strokeCount);
+                            this.onChordRelease(keysOnly, hasSpace, order, strokeCount, strokeSpan);
                         }
                         this.onKeysChange();
                     }
@@ -6170,7 +5765,7 @@
                 }
             }
 
-            onChordRelease(combo, hasSpace = false, keyOrder = [], strokeCount = 0) {
+            onChordRelease(combo, hasSpace = false, keyOrder = [], strokeCount = 0, strokeSpan = 0) {
                 // Rule: Never treat a single letter (without digits) as a chord.
                 // Prevents normal typing from accidentally expanding chords or triggering morphemes!
                 if (combo.length === 1 && !/\d/.test(combo)) {
@@ -6248,6 +5843,12 @@
                             }
                         }
                         this.insertChordOutput(deriv.word);
+
+                        // The compound carries its own paradigm: "undo" inflects to
+                        // undid / undoing / undoes / undone, not the root's "do" forms.
+                        this.activeGrammarWord = deriv.word;
+                        this.activeGrammarLemma = deriv.word;
+                        this.activeGrammar = getWordGrammar(deriv.word);
 
                         // Save attachment for smart Backspace undo (e.g. undo intake -> take + in)
                         this.lastMorphemeAttachment = {
@@ -6334,9 +5935,23 @@
                             setTimeout(() => this.sandboxNextPrompt(), 700);
                         }
                     } else {
-                        // SMART REGULAR TYPING: No chord matched.
-                        // Characters were ALREADY displayed in real time on keydown!
-                        if (keyOrder && keyOrder.length > 0) {
+                        // UNMAPPED STROKE.
+                        // A multi-key strike that resolves to nothing is a MISTYPED CHORD, not text:
+                        // roll its characters back so they never pollute the box, the clipboard or the
+                        // unmapped-words list. Sequential (one-key-at-a-time) typing is left untouched.
+                        const isChordAttempt = !hasSpace && (strokeCount >= 3 || (strokeCount === 2 && strokeSpan <= 90));
+                        if (isChordAttempt) {
+                            this.eraseStrokeChars(strokeCount);
+                            sound.playChime();
+                            if (toast) {
+                                toast.innerText = `⚠️ Unmapped chord '${combo}' — removed (no dictionary match)`;
+                                toast.className = "text-xs md:text-sm font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 px-6 py-2 rounded-xl text-center";
+                            }
+                            if (this.activeRoot) {
+                                this.activeRoot = null;
+                                this.renderMorphemeTree();
+                            }
+                        } else if (keyOrder && keyOrder.length > 0) {
                             if (toast) {
                                 toast.innerText = `⌨️ Typed: "${keyOrder.join('')}"`;
                                 toast.className = "text-xs md:text-sm font-bold text-slate-300 bg-slate-900 border border-slate-700 px-6 py-2 rounded-xl text-center";
