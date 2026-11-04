@@ -628,6 +628,22 @@
             </div>
         </div>
 
+        <!-- Volume Slider Popup -->
+        <div id="volume-popup" class="fixed hidden" style="z-index: 59; right: 16px; bottom: 16px;">
+            <div class="bg-slate-900 border border-slate-700/70 rounded-2xl p-4 shadow-2xl" style="width: 280px;">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-black text-white">🔊 Volume</span>
+                    <button onclick="app.toggleVolumeSlider(false)" class="text-slate-400 hover:text-white font-bold text-sm transition-colors" style="width: 28px; height: 28px; border-radius: 9999px; background: #1e293b;">✕</button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="volume-mute-btn" onclick="app.toggleMute()" class="text-lg transition-transform active:scale-90" style="width: 36px; height: 36px; border-radius: 10px; background: #1e293b; border: 1px solid #334155;">🔊</button>
+                    <input id="volume-slider" type="range" min="0" max="100" step="1" value="12" oninput="app.setVolume(this.value / 100)" class="flex-1 cursor-pointer" style="accent-color: #6366f1;">
+                    <span id="volume-value" class="text-xs font-mono text-slate-400" style="width: 38px; text-align: right;">12%</span>
+                </div>
+                <p class="text-slate-500 mt-2" style="font-size: 10px;">Shortcut: <span class="font-mono text-indigo-300">Alt+V</span> toggles · <span class="font-mono text-indigo-300">Esc</span> closes</p>
+            </div>
+        </div>
+
         <!-- Unmapped / Missing Words Modal Dialog -->
         <div id="unmapped-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
             <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4">
@@ -683,21 +699,53 @@
     <script>
         // Web Audio Synthesizer for chording audio feedback
         class SoundFX {
-            constructor() { this.ctx = null; }
+            constructor() {
+                this.ctx = null;
+                this.volume = 0.12;   // 0..1
+                this.muted = false;
+            }
             init() {
                 if (!this.ctx) {
                     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 }
             }
+            setVolume(v) {
+                this.volume = Math.max(0, Math.min(1, v));
+                if (this.volume > 0) this.muted = false;
+                this.persist();
+            }
+            toggleMute() {
+                this.muted = !this.muted;
+                this.persist();
+                return this.muted;
+            }
+            persist() {
+                try {
+                    localStorage.setItem('steno_volume', String(this.volume));
+                    localStorage.setItem('steno_muted', this.muted ? '1' : '0');
+                } catch(e) {}
+            }
+            load() {
+                try {
+                    const v = parseFloat(localStorage.getItem('steno_volume'));
+                    if (!isNaN(v)) this.volume = Math.max(0, Math.min(1, v));
+                    this.muted = localStorage.getItem('steno_muted') === '1';
+                } catch(e) {}
+            }
+            get effectiveVolume() {
+                return this.muted ? 0 : this.volume;
+            }
             playTone(freq = 600, type = 'triangle', duration = 0.09) {
                 try {
                     this.init();
                     if (!this.ctx) return;
+                    const vol = this.effectiveVolume;
+                    if (vol <= 0) return;
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
@@ -715,6 +763,7 @@
             }
         }
         const sound = new SoundFX();
+        sound.load();
 
         // 10-Finger Scheme strictly matching our Python system
         const FINGER_SCHEME = [
@@ -732,6 +781,32 @@
             { id: 'right-ring', name: 'Right Ring', hand: 'right', finger: 'Ring', keys: ['9', 'o', 'l', '.'], color: '#c084fc' },
             { id: 'right-pinky', name: 'Right Pinky', hand: 'right', finger: 'Pinky', keys: ['0', 'p', ';', '/', "'"], color: '#f472b6' }
         ];
+
+        // --- Chinese chord boil-down rule (tone-free) --------------------
+        // The tone digit is a FREE modifier: it is always kept and never
+        // participates in finger-conflict resolution.
+        // Pinyin letters are walked in reading order; the FIRST key per finger
+        // wins, and any later letter on an already-used finger is skipped
+        // (e.g. "de" -> "d": d & e share Left Middle; "kuai" -> "kua": k & i
+        // share Right Middle). The stored chord is the sorted survivors.
+        function boilChord(raw) {
+            const digits = [];
+            const letters = [];
+            for (const ch of raw) {
+                if (/\d/.test(ch)) digits.push(ch);
+                else letters.push(ch.toLowerCase());
+            }
+            const used = new Set();
+            const kept = [];
+            for (const ch of letters) {
+                const scheme = FINGER_SCHEME.find(s => s.keys.includes(ch));
+                if (!scheme) { kept.push(ch); continue; }
+                if (used.has(scheme.id)) continue;   // same finger already used -> skip
+                used.add(scheme.id);
+                kept.push(ch);
+            }
+            return [...digits, ...kept].sort().join('');
+        }
 
         const KEYBOARD_ROWS = [
             ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
@@ -788,7 +863,8 @@
             { word: "about", chord: "abotu", keys: "about", note: "Clean 5-finger match" },
             { word: "think", chord: "hint", keys: "thin", note: "k skipped (conflict with i)" , grammar: { pos: "verb", forms: {"1":"thought","2":"thinking","3":"thinks","4":"thought"} } },
             { word: "please", chord: "aelps", keys: "pleas", note: "e duplicate skipped" },
-            { word: "world", chord: "dorw", keys: "word", note: "l skipped (conflict with o)" , grammar: { pos: "noun", forms: {"1":"worlds","2":"world's","3":"worlds'"} } },
+            { word: "word", chord: "dorw", keys: "word", note: "Clean 4-finger match (w-o-r-d)" , grammar: { pos: "noun", forms: {"1":"words","2":"word's","3":"words'"} } },
+            { word: "world", chord: "8dorw", keys: "word8", note: "8 stands in for l (o & l share Right Ring)" , grammar: { pos: "noun", forms: {"1":"worlds","2":"world's","3":"worlds'"} } },
             { word: "steno", chord: "enost", keys: "steno", note: "Clean 5-finger match" , grammar: { pos: "noun", forms: {"1":"stenos","2":"steno's"} } },
             { word: "code", chord: "co", keys: "co", note: "d and e conflicts skipped" , grammar: { pos: "verb", forms: {"1":"coded","2":"coding","3":"codes","4":"coded"} } },
             { word: "computer", chord: "cmopt", keys: "compt", note: "u, e, r conflicts skipped" , grammar: { pos: "noun", forms: {"1":"computers","2":"computer's","3":"computers'"} } },
@@ -838,18 +914,23 @@
             { word: "so", chord: "os", keys: "so", note: "Clean 2-finger match" },
             { word: "table", chord: "abelt", keys: "table", note: "Root for timetable" },
             { word: "type", chord: "epty", keys: "type", note: "Root for typing, typed" },
+            { word: "trigger", chord: "9eit", keys: "tie9", note: "Mnemonic t-i-e + 9" , grammar: { pos: "verb", forms: {"1":"triggered","2":"triggering","3":"triggers"} } },
             { word: "up", chord: "pu", keys: "up", note: "Clean 2-finger match" },
             { word: "verb", chord: "bev", keys: "verb", note: "Root for verbs, verbal" },
             { word: "verbs", chord: "besv", keys: "verbs", note: "verb + s" },
             { word: "we have", chord: "ehvw", keys: "wehave", note: "Phrasing: we + have" },
             // Chinese Pinyin Chords (Corresponding to English Vocabulary)
+            // Chinese disambiguation: chord = sorted(tone + letter + pinyin). On a chord
+            // collision append, in order: n, b, v, c — skipping any letter already in the
+            // pinyin (e.g. 节 = 2eij → 捷 = 2eijn; 按 = 4an → 那 = 4abn). English words
+            // disambiguate with numbers instead (word = dorw, world = 8dorw).
             { word: "这", chord: "4ehz", keys: "4zhe", pinyin: "zhè", english: "this", note: "Tone 4 + zhe (zhè - this)" },
             { word: "是", chord: "4his", keys: "4shi", pinyin: "shì", english: "is/be", note: "Tone 4 + shi (shì - is/be)" },
             { word: "爱", chord: "4ai", keys: "4ai", pinyin: "ài", english: "love", note: "Tone 4 + ai (ài - love, mirror: 7;i)" },
             { word: "能", chord: "2egn", keys: "2neng", pinyin: "néng", english: "can", note: "Tone 2 + neng (can)" },
             { word: "狗", chord: "3gou", keys: "3gou", pinyin: "gǒu", english: "dog", note: "Tone 3 + gou (dog)" },
-            { word: "快", chord: "4aiku", keys: "4kuai", pinyin: "kuài", english: "fast", note: "Tone 4 + kuai (fast)" },
-            { word: "书", chord: "1hsu", keys: "1shu", pinyin: "shū", english: "book", note: "Tone 1 + shu (book)" },
+            { word: "快", chord: "4aku", keys: "4kua", pinyin: "kuài", english: "fast", note: "Tone 4 + kuai (i skipped — k/i conflict on Right Middle; fast)" },
+            { word: "书", chord: "1hs", keys: "1sh", pinyin: "shū", english: "book", note: "Tone 1 + shu (u skipped — h/u conflict on Right Index; book)" },
             { word: "档", chord: "3adgn", keys: "3dang", pinyin: "dǎng", english: "file", note: "Tone 3 + dang (file)" },
             { word: "命", chord: "4gimn", keys: "4ming", pinyin: "mìng", english: "life", note: "Tone 4 + ming (life)" },
             { word: "上", chord: "4aghns", keys: "4shang", pinyin: "shàng", english: "on", note: "Tone 4 + shang (on)" },
@@ -858,9 +939,9 @@
             { word: "谁", chord: "2ehis", keys: "2shei", pinyin: "shéi", english: "who", note: "Tone 2 + shei (who)" },
             { word: "我", chord: "3ow", keys: "3wo", pinyin: "wǒ", english: "i", note: "Tone 3 + wo (I/me)" },
             { word: "他", chord: "1at", keys: "1ta", pinyin: "tā", english: "he", note: "Tone 1 + ta (he/him)" },
-            { word: "她", chord: "2at", keys: "2ta", pinyin: "tā", english: "she", note: "Tone 2 + ta (she/her)" },
-            { word: "它", chord: "3at", keys: "3ta", pinyin: "tā", english: "it", note: "Tone 3 + ta (it)" },
-            { word: "们", chord: "2emn", keys: "2men", pinyin: "men", english: "we", note: "Tone 2 + men (plural/we)" },
+            { word: "她", chord: "1ant", keys: "1nta", pinyin: "tā", english: "she", note: "Tone 1 + n + ta (she — n disambiguates from 他)" },
+            { word: "它", chord: "1abt", keys: "1bta", pinyin: "tā", english: "it", note: "Tone 1 + b + ta (it — b disambiguates from 他/她)" },
+            { word: "们", chord: "5emn", keys: "5men", pinyin: "men", english: "we", note: "Tone 5 + men (neutral — plural suffix)" },
             { word: "你", chord: "3in", keys: "3ni", pinyin: "nǐ", english: "you", note: "Tone 3 + ni (you)" },
             { word: "什", chord: "2ehns", keys: "2shen", pinyin: "shén", english: "what", note: "Tone 2 + shen (what)" },
             { word: "时", chord: "2his", keys: "2shi", pinyin: "shí", english: "when", note: "Tone 2 + shi (time/when)" },
@@ -869,18 +950,18 @@
             { word: "走", chord: "3ouz", keys: "3zou", pinyin: "zǒu", english: "walk", note: "Tone 3 + zou (walk)" },
             { word: "里", chord: "3il", keys: "3li", pinyin: "lǐ", english: "in", note: "Tone 3 + li (inside/in)" },
             { word: "大", chord: "4ad", keys: "4da", pinyin: "dà", english: "big", note: "Tone 4 + da (big)" },
-            { word: "步", chord: "24bu", keys: "24bu", pinyin: "bù", english: "step", note: "Tone 4 + bu2 (step/pace)" },
+            { word: "步", chord: "4bnu", keys: "4nbu", pinyin: "bù", english: "step", note: "Tone 4 + n + bu (step — n disambiguates from 不)" },
             { word: "如", chord: "2ru", keys: "2ru", pinyin: "rú", english: "if", note: "Tone 2 + ru (if/as)" },
             { word: "来", chord: "2ail", keys: "2lai", pinyin: "lái", english: "come", note: "Tone 2 + lai (come)" },
             { word: "给", chord: "3egi", keys: "3gei", pinyin: "gěi", english: "for", note: "Tone 3 + gei (give/for)" },
             { word: "做", chord: "4ouz", keys: "4zuo", pinyin: "zuò", english: "do", note: "Tone 4 + zuo (do/make)" },
-            { word: "有", chord: "3ouy", keys: "3you", pinyin: "yǒu", english: "have", note: "Tone 3 + you (have)" },
+            { word: "有", chord: "3oy", keys: "3yo", pinyin: "yǒu", english: "have", note: "Tone 3 + you (u skipped — y/u conflict on Right Index; have)" },
             { word: "和", chord: "2eh", keys: "2he", pinyin: "hé", english: "with", note: "Tone 2 + he (with/and)" },
             { word: "想", chord: "3aginx", keys: "3xiang", pinyin: "xiǎng", english: "want", note: "Tone 3 + xiang (want/think)" },
             { word: "任", chord: "4enr", keys: "4ren", pinyin: "rèn", english: "any", note: "Tone 4 + ren (any)" },
             { word: "问", chord: "4enw", keys: "4wen", pinyin: "wèn", english: "ask", note: "Tone 4 + wen (ask)" },
-            { word: "窗", chord: "1acghnu", keys: "1chuang", pinyin: "chuāng", english: "window", note: "Tone 1 + chuang (window)" },
-            { word: "那", chord: "14an", keys: "14na", pinyin: "nà", english: "that", note: "Tone 4 + na1 (that)" },
+            { word: "窗", chord: "1acghn", keys: "1chang", pinyin: "chuāng", english: "window", note: "Tone 1 + chuang (u skipped — h/u conflict on Right Index; window)" },
+            { word: "那", chord: "4abn", keys: "4bna", pinyin: "nà", english: "that", note: "Tone 4 + b + na (that — b disambiguates from 按)" },
             { word: "机", chord: "1ij", keys: "1ji", pinyin: "jī", english: "machine", note: "Tone 1 + ji (machine)" },
             { word: "连", chord: "2ailn", keys: "2lian", pinyin: "lián", english: "connect", note: "Tone 2 + lian (connect/link)" },
             { word: "地", chord: "4di", keys: "4di", pinyin: "dì", english: "local", note: "Tone 4 + di (local/place)" },
@@ -893,12 +974,21 @@
             { word: "脑", chord: "3ano", keys: "3nao", pinyin: "nǎo", english: "computer", note: "Tone 3 + nao (brain/computer)" },
             { word: "盘", chord: "2anp", keys: "2pan", pinyin: "pán", english: "keyboard", note: "Tone 2 + pan (keyboard/disc)" },
             { word: "功", chord: "1gno", keys: "1gong", pinyin: "gōng", english: "function", note: "Tone 1 + gong (function)" },
-            { word: "站", chord: "4ahnz", keys: "4zhan", pinyin: "zhàn", english: "stand", note: "Tone 4 + zhan (stand)" },
+            { word: "站", chord: "4hnz", keys: "4zhn", pinyin: "zhàn", english: "stand", note: "Tone 4 + zhan (a skipped — z/a conflict on Left Pinky; stand)" },
             { word: "拿", chord: "2an", keys: "2na", pinyin: "ná", english: "take", note: "Tone 2 + na (take)" },
-            { word: "转", chord: "3ahnuz", keys: "3zhuan", pinyin: "zhuǎn", english: "turn", note: "Tone 3 + zhuan (turn)" },
-            { word: "形", chord: "2ginpx", keys: "2xing", pinyin: "xíng", english: "form", note: "Tone 2 + xing (form/shape)" },
+            { word: "转", chord: "3hnz", keys: "3zhn", pinyin: "zhuǎn", english: "turn", note: "Tone 3 + zhuan (u & a skipped — h/u & z/a conflicts; turn)" },
+            { word: "形", chord: "2ginx", keys: "2xing", pinyin: "xíng", english: "form", note: "Tone 2 + xing (form/shape)" },
             { word: "按", chord: "4an", keys: "4an", pinyin: "àn", english: "press", note: "Tone 4 + an (press)" },
-            { word: "动", chord: "4dgnos", keys: "4dong", pinyin: "dòng", english: "act", note: "Tone 4 + dong (act/action)" },
+            { word: "动", chord: "4dgno", keys: "4dong", pinyin: "dòng", english: "act", note: "Tone 4 + dong (act/action)" },
+            { word: "没", chord: "2eim", keys: "2mei", pinyin: "méi", english: "not", note: "Tone 2 + mei (not)" },
+            { word: "可", chord: "3ek", keys: "3ke", pinyin: "kě", english: "can", note: "Tone 3 + ke (can/may)" },
+            { word: "以", chord: "3iy", keys: "3yi", pinyin: "yǐ", english: "with", note: "Tone 3 + yi (with/by means of)" },
+            { word: "调", chord: "2aiot", keys: "2tiao", pinyin: "tiáo", english: "adjust", note: "Tone 2 + tiao (adjust)" },
+            { word: "节", chord: "2eij", keys: "2jie", pinyin: "jié", english: "segment", note: "Tone 2 + jie (segment/joint)" },
+            { word: "音", chord: "1iny", keys: "1yin", pinyin: "yīn", english: "sound", note: "Tone 1 + yin (sound)" },
+            { word: "量", chord: "4agiln", keys: "4liang", pinyin: "liàng", english: "volume", note: "Tone 4 + liang (volume/amount)" },
+            { word: "捷", chord: "2eijn", keys: "2njie", pinyin: "jié", english: "quick", note: "Tone 2 + n + jie (quick — n disambiguates from 节)" },
+            { word: "键", chord: "4aijn", keys: "4jian", pinyin: "jiàn", english: "key", note: "Tone 4 + jian (key)" },
             { word: "am", chord: "am", keys: "am", note: "1st person be (I am)", english: "am" , grammar: { pos: "verb", forms: {"1":"am","2":"are","3":"is","4":"was","5":"were","6":"been","7":"being"} } },
             { word: "andlook", chord: "adkln", keys: "adkln", note: "Look compound (and look)", english: "andlook" },
             { word: "are", chord: "aer", keys: "aer", note: "2nd/plural be", english: "are" , grammar: { pos: "verb", forms: {"1":"am","2":"are","3":"is","4":"was","5":"were","6":"been","7":"being"} } },
@@ -909,12 +999,12 @@
             { word: "something", chord: "mnost", keys: "mnost", note: "Unspecified entity", english: "something" },
             { word: "strucuture", chord: "ckstu", keys: "ckstu", note: "Framework / arrangement (structure)", english: "strucuture" },
             { word: "thing", chord: "ghin", keys: "ghin", note: "Object / entity", english: "thing" },
-            { word: "this", chord: "hist", keys: "hist", note: "Specific entity (near)", english: "this" },
+            { word: "this", chord: "hist", keys: "hist", note: "Specific entity (near)", english: "this" , grammar: { pos: "determiner", forms: {"1":"these"} } },
             // Chinese Characters (Tone + Pinyin)
             { word: "记", chord: "4ij", keys: "4ji", pinyin: "jì", english: "record", note: "Tone 4 + ji (record/write down)" },
             { word: "打", chord: "3ad", keys: "3da", pinyin: "dǎ", english: "type", note: "Tone 3 + da (type/strike/hit)" },
             { word: "字", chord: "4iz", keys: "4zi", pinyin: "zì", english: "character", note: "Tone 4 + zi (character/letter)" },
-            { word: "目", chord: "4mu", keys: "4mu", pinyin: "mù", english: "eye", note: "Tone 4 + mu (eye)" },
+            { word: "目", chord: "4m", keys: "4m", pinyin: "mù", english: "eye", note: "Tone 4 + mu (u skipped — m/u conflict on Right Index; eye)" },
             { word: "标", chord: "1abio", keys: "1biao", pinyin: "biāo", english: "target", note: "Tone 1 + biao (mark/target/standard)" },
             { word: "么", chord: "5em", keys: "5me", pinyin: "me", english: "suffix", note: "Tone 5 + me (question suffix)" },
             { word: "仅", chord: "3ijn", keys: "3jin", pinyin: "jǐn", english: "only", note: "Tone 3 + jin (only/merely)" },
@@ -925,11 +1015,18 @@
             { word: "士", chord: "14his", keys: "14shi", pinyin: "shì", english: "scholar", note: "Tone 4 + shi2 (person/scholar)" },
             { word: "指", chord: "3hiz", keys: "3zhi", pinyin: "zhǐ", english: "point", note: "Tone 3 + zhi (point/indicate)" },
             { word: "所", chord: "3osu", keys: "3suo", pinyin: "suǒ", english: "place", note: "Tone 3 + suo (place/that which)" },
-            { word: "的", chord: "5de", keys: "5de", pinyin: "de", english: "of", note: "Tone 5 + de (structural particle)" },
+            { word: "的", chord: "5d", keys: "5d", pinyin: "de", english: "of", note: "Tone 5 + de (e skipped — d/e conflict on Left Middle; structural particle)" },
+            { word: "得", chord: "5dn", keys: "5dn", pinyin: "de", english: "obtain", note: "Tone 5 + de (e skipped; n disambiguates from 的)" },
             { word: "边", chord: "1abin", keys: "1bian", pinyin: "biān", english: "edge", note: "Tone 1 + bian (edge/side)" },
-            { word: "缘", chord: "2anuy", keys: "2yuan", pinyin: "yuán", english: "margin", note: "Tone 2 + yuan (edge/margin)" },
+            { word: "缘", chord: "2any", keys: "2yan", pinyin: "yuán", english: "margin", note: "Tone 2 + yuan (u skipped — y/u conflict on Right Index; edge/margin)" },
             { word: "情", chord: "2ginq", keys: "2qing", pinyin: "qíng", english: "situation", note: "Tone 2 + qing (situation/feeling)" },
             { word: "况", chord: "4agknu", keys: "4kuang", pinyin: "kuàng", english: "condition", note: "Tone 4 + kuang (condition/circumstance)" },
+            { word: "照", chord: "4hoz", keys: "4zhao", pinyin: "zhào", english: "according to", note: "Tone 4 + zhao (a skipped — z/a conflict on Left Pinky; according to/shine)" },
+            { word: "着", chord: "5ehz", keys: "5zhe", pinyin: "zhe", english: "ongoing", note: "Tone 5 + zhe (neutral — ongoing/-ing particle)" },
+            { word: "个", chord: "4eg", keys: "4ge", pinyin: "gè", english: "a", note: "Tone 4 + ge (measure word / a)" },
+            { word: "也", chord: "3ey", keys: "3ye", pinyin: "yě", english: "also", note: "Tone 3 + ye (also/too)" },
+            { word: "一", chord: "1iy", keys: "1yi", pinyin: "yī", english: "one", note: "Tone 1 + yi (one)" },
+            { word: "吧", chord: "5ab", keys: "5ba", pinyin: "ba", english: "particle", note: "Tone 5 + ba (neutral — suggestion particle)" },
             // Chinese Compound Phrases
             { word: "速记", chord: "4ijsu", keys: "4su+4ji", pinyin: "sùjì", english: "steno", note: "Compound: fast + record (steno/shorthand)" },
             { word: "打字", chord: "34adiz", keys: "3da+4zi", pinyin: "dǎzì", english: "typing", note: "Compound: type + character (typing)" },
@@ -943,6 +1040,7 @@
             { word: "仅限", chord: "34aijnx", keys: "3jin+4xian", pinyin: "jǐnxiàn", english: "only", note: "Compound: only + limit (limited to)" },
             { word: "温良", chord: "12aegilnw", keys: "1wen+2liang", pinyin: "wēnliáng", english: "gentle and kind", note: "Compound: warm + good (gentle)" },
             { word: "女士", chord: "134hinsu", keys: "3nu+14shi", pinyin: "nǚshì", english: "lady", note: "Compound: woman + scholar (lady/madam)" },
+            { word: "照着这个也来一个吧", chord: "12345abeghiloyz", keys: "4zhao+5zhe+4zhe+4ge+3ye+2lai+1yi+4ge+5ba", pinyin: "zhào zhe zhè ge yě lái yī ge ba", english: "make one like this too", note: "Compound: follow this and make one too" },
             // Requested Vocabulary Chords (Clean & Ergonomic)
             { word: "add", chord: "2ad", keys: "2ad", note: "Clean 3-finger match (2 + a + d)" , grammar: { pos: "verb", forms: {"1":"added","2":"adding","3":"adds","4":"addition"} } },
             { word: "all", chord: "2al", keys: "2al", note: "Clean 3-finger match (2 + a + l)" },
@@ -1040,6 +1138,23 @@
             { word: "untoggle", chord: "lntu", keys: "untl", note: "Clean 4-finger match (u-n-t-l)" },
             { word: "ad", chord: "1ad", keys: "1ad", note: "1 + a-d (ad / advertisement)" }
         ];
+
+        // --- Self-check: warn if any Chinese chord drifts from the rule ---
+        function validateChineseChords() {
+            const bad = [];
+            STENO_DICTIONARY.forEach(item => {
+                if (!/^[\u4e00-\u9fff]$/.test(item.word)) return;       // single Hanzi only
+                if (String(item.keys || '').includes('+')) return;      // skip compounds
+                const boiled = boilChord(item.keys);
+                if (boiled !== item.chord) {
+                    bad.push(`${item.word} (keys "${item.keys}" -> "${boiled}", stored "${item.chord}")`);
+                }
+            });
+            if (bad.length) {
+                console.warn(`[steno] ${bad.length} Chinese chord(s) drift from the boil-down rule:\n  ` + bad.join('\n  '));
+            }
+        }
+        validateChineseChords();
 
         // Map sorted chord to output word
         const CHORD_MAP = {};
@@ -1152,14 +1267,17 @@
             "1ad": "ad "
         });
 
-        // Mirror mappings for alternating/bimanual key ergonomics:
-        // Tones: Right hand 0, 9, 8, 7 -> Left hand 1, 2, 3, 4
-        // Pinky letters: ; -> a, / -> z
-        // Ring letters: l -> s
+        // Mirror mappings for alternating/bimanual key ergonomics.
+        // Each pair is an equivalence class: BOTH keys resolve to the
+        // left-hand canonical, so you may strike either hand.
+        //   Tones: 0<->1, 9<->2, 8<->3, 7<->4   (canonical 1, 2, 3, 4)
+        //   Pinky: ;<->a, /<->z                 (canonical a, z)
+        // Reverse entries are intentionally omitted: the dictionary stores the
+        // left-hand letter, so a two-way rewrite would stop 'a'/'z' from matching.
         const MIRROR_KEYS = {
             '0': '1', '9': '2', '8': '3', '7': '4',
-            ';': 'a', '/': 'z',
-            'l': 's'
+            ';': 'a',
+            '/': 'z'
         };
 
         function canonicalizeChord(chordStr) {
@@ -1182,7 +1300,8 @@
             "机": "machine", "连": "connect", "地": "local", "关": "about", "思": "think",
             "请": "please", "界": "world", "速": "steno", "码": "code", "脑": "computer",
             "盘": "keyboard", "功": "function", "站": "stand", "拿": "take", "转": "turn",
-            "形": "form", "按": "press", "动": "act", "这": "this", "是": "is", "爱": "love", "记": "record", "打": "type", "字": "character", "目": "eye", "标": "target", "么": "what", "仅": "only", "限": "limit", "温": "warm", "良": "good", "女": "woman", "士": "scholar", "指": "point", "所": "place", "的": "of", "边": "edge", "缘": "margin", "情": "situation", "况": "condition"
+            "形": "form", "按": "press", "动": "act", "这": "this", "是": "is", "爱": "love", "记": "record", "打": "type", "字": "character", "目": "eye", "标": "target", "么": "what", "仅": "only", "限": "limit", "温": "warm", "良": "good", "女": "woman", "士": "scholar", "指": "point", "所": "place", "的": "of", "边": "edge", "缘": "margin", "情": "situation", "况": "condition",
+            "可": "can", "以": "with", "调": "adjust", "节": "segment", "音": "sound", "量": "volume", "捷": "quick"
         };
 
         // Bidirectional English to Chinese Character Mapping
@@ -1243,7 +1362,9 @@
             "仅限温良女士": "only for gentle and kind ladies",
             "指标": "metric", "指标是什么": "what is the metric", "指标是什么？": "what is the metric?",
             "所有": "all", "边缘": "edge", "情况": "situation",
-            "边缘情况": "edge cases", "所有的边缘情况": "all the edge cases"
+            "边缘情况": "edge cases", "所有的边缘情况": "all the edge cases",
+            "照": "according to", "着": "ongoing", "个": "a", "一": "one", "吧": "particle",
+            "照着这个也来一个吧": "make one like this too"
         });
 
         // Additional English phrases mapping to Chinese
@@ -1306,7 +1427,11 @@
             "teachers": "老师",
             "teacher": "老师",
             "try": "尝试",
-            "two": "二"
+            "two": "二",
+            "according to": "照",
+            "ongoing": "着",
+            "make one like this too": "照着这个也来一个吧",
+            "follow this and make one too": "照着这个也来一个吧"
         });
 
         // Mirror new translations into CHINESE_TO_ENGLISH
@@ -1721,6 +1846,7 @@
             "about": { emoji: "ℹ️", bg: "#0284c7", glow: "rgba(2, 132, 199, 0.4)", label: "ABOUT" },
             "think": { emoji: "🧠", bg: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", label: "THINK" },
             "please": { emoji: "🙏", bg: "#ec4899", glow: "rgba(236, 72, 153, 0.4)", label: "PLEASE" },
+            "word": { emoji: "💬", bg: "#7c3aed", glow: "rgba(124, 58, 237, 0.4)", label: "WORD" },
             "world": { emoji: "🌍", bg: "#0284c7", glow: "rgba(2, 132, 199, 0.4)", label: "WORLD" },
             "steno": { emoji: "⚡", bg: "#4f46e5", glow: "rgba(79, 70, 229, 0.4)", label: "STENO" },
             "code": { emoji: "💻", bg: "#0f172a", glow: "rgba(56, 189, 248, 0.4)", label: "CODE" },
@@ -1874,6 +2000,12 @@
             "缘": { emoji: "🧶", bg: "#f97316", glow: "rgba(249, 115, 22, 0.4)", label: "缘 (MARGIN)" },
             "情": { emoji: "💭", bg: "#06b6d4", glow: "rgba(6, 182, 212, 0.4)", label: "情 (FEELING)" },
             "况": { emoji: "📋", bg: "#64748b", glow: "rgba(100, 116, 139, 0.4)", label: "况 (CONDITION)" },
+            "照": { emoji: "🔦", bg: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", label: "照 (ACCORDING TO)" },
+            "着": { emoji: "⏳", bg: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", label: "着 (ONGOING)" },
+            "个": { emoji: "🈴", bg: "#8b5cf6", glow: "rgba(139, 92, 246, 0.4)", label: "个 (A)" },
+            "也": { emoji: "➕", bg: "#10b981", glow: "rgba(16, 185, 129, 0.4)", label: "也 (ALSO)" },
+            "一": { emoji: "1️⃣", bg: "#6366f1", glow: "rgba(99, 102, 241, 0.4)", label: "一 (ONE)" },
+            "吧": { emoji: "💬", bg: "#64748b", glow: "rgba(100, 116, 139, 0.4)", label: "吧 (PARTICLE)" },
             // Chinese Compound Phrases Visuals
             "大步走": { emoji: "🚶‍♂️", bg: "#059669", glow: "rgba(5, 150, 105, 0.4)", label: "大步走 (STRIDE)" },
             "速记": { emoji: "⚡", bg: "#4f46e5", glow: "rgba(79, 70, 229, 0.4)", label: "速记 (STENO)" },
@@ -1895,6 +2027,7 @@
             "情况": { emoji: "📋", bg: "#64748b", glow: "rgba(100, 116, 139, 0.4)", label: "情况 (SITUATION)" },
             "边缘情况": { emoji: "📋", bg: "#8b5cf6", glow: "rgba(139, 92, 246, 0.4)", label: "边缘情况 (EDGE CASES)" },
             "所有的边缘情况": { emoji: "📋", bg: "#8b5cf6", glow: "rgba(139, 92, 246, 0.4)", label: "所有的边缘情况 (ALL EDGE CASES)" },
+            "照着这个也来一个吧": { emoji: "🔦", bg: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", label: "照着这个也来一个吧 (MAKE ONE LIKE THIS TOO)" },
             // English Vocabulary Visuals
             "goal": { emoji: "🎯", bg: "#ef4444", glow: "rgba(239, 68, 68, 0.4)", label: "GOAL" },
             "target": { emoji: "🎯", bg: "#ef4444", glow: "rgba(239, 68, 68, 0.4)", label: "TARGET" },
@@ -2121,7 +2254,15 @@
             "指标是什么？": "📈",
             "仅限温良女士": "🕊️",
             "边缘情况": "📏",
-            "所有的边缘情况": "📏"
+            "所有的边缘情况": "📏",
+            "没": "🈚",
+            "可": "🉑",
+            "以": "➡️",
+            "调": "🎚️",
+            "节": "🧩",
+            "音": "🔊",
+            "量": "⚖️",
+            "捷": "💨"
         };
 
         for (const [cjkWord, cjkEmoji] of Object.entries(CJK_PICTOGRAMS)) {
@@ -3878,6 +4019,7 @@
                         "emoji": "👉",
                         "note": "Specific person or thing",
                         "char": "这",
+                        "grammar": { "pos": "determiner", "forms": { "1": "these" } },
                         "derivatives": {}
             }
 };
@@ -3942,6 +4084,12 @@
                         "name": "reflexive",
                         "label": "Reflexive Case"
                 }
+        },
+        "determiner": {
+                "1": {
+                        "name": "plural",
+                        "label": "Plural (this → these / that → those)"
+                }
         }
 };
 
@@ -3955,7 +4103,6 @@
         // ---------------------------------------------------------------------------
         const EXTRA_GRAMMAR = {
             "happen": { pos: "verb", forms: {"1":"happened","2":"happening","3":"happens"} },
-            "trigger": { pos: "verb", forms: {"1":"triggered","2":"triggering","3":"triggers"} },
             "number": { pos: "noun", forms: {"1":"numbers","2":"number's"} },
             "character": { pos: "noun", forms: {"1":"characters","2":"character's"} },
             "teacher": { pos: "noun", forms: {"1":"teachers","2":"teacher's"} }
@@ -4891,6 +5038,7 @@
                     ["Clear the box", "Ctrl+L · Esc"],
                     ["Copy unmapped list", "Alt+U"],
                     ["Open unmapped list", "Alt+Shift+U"],
+                    ["Volume slider", "Alt+V"],
                     ["Full interface on / off", "Alt+F"],
                     ["Browser fullscreen", "Alt+Shift+F"],
                     ["This shortcuts card", "? · Alt+K"],
@@ -4927,6 +5075,42 @@
                         if (p && p.catch) p.catch(() => {});
                     }
                 } catch (err) { /* fullscreen unavailable */ }
+            }
+
+            toggleVolumeSlider(force) {
+                const el = document.getElementById('volume-popup');
+                if (!el) return;
+                const show = (typeof force === 'boolean') ? force : el.classList.contains('hidden');
+                if (show) this.syncVolumeSlider();
+                el.classList.toggle('hidden', !show);
+            }
+
+            syncVolumeSlider() {
+                const slider = document.getElementById('volume-slider');
+                const value = document.getElementById('volume-value');
+                const muteBtn = document.getElementById('volume-mute-btn');
+                const silent = sound.muted || sound.volume <= 0;
+                if (slider) slider.value = String(Math.round(sound.volume * 100));
+                if (value) value.textContent = `${Math.round(sound.effectiveVolume * 100)}%`;
+                if (muteBtn) muteBtn.textContent = silent ? '🔇' : '🔊';
+            }
+
+            setVolume(v) {
+                sound.setVolume(v);
+                const value = document.getElementById('volume-value');
+                const muteBtn = document.getElementById('volume-mute-btn');
+                const silent = sound.muted || sound.volume <= 0;
+                if (value) value.textContent = `${Math.round(sound.effectiveVolume * 100)}%`;
+                if (muteBtn) muteBtn.textContent = silent ? '🔇' : '🔊';
+            }
+
+            toggleMute() {
+                const nowMuted = sound.toggleMute();
+                if (!nowMuted && sound.volume <= 0) {
+                    sound.setVolume(0.12);
+                }
+                this.syncVolumeSlider();
+                if (!sound.muted) sound.playTone(523.25, 'triangle', 0.06); // audible unmute confirmation
             }
 
             flashEditor(kind) {
@@ -5509,6 +5693,13 @@
                         return;
                     }
 
+                    // Volume slider popup toggle: Alt+V
+                    if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'v') {
+                        e.preventDefault();
+                        this.toggleVolumeSlider();
+                        return;
+                    }
+
                     // Keyboard Shortcuts: Ctrl+Shift+C (Dedicated English Copy), Ctrl+C (Copy English words), Ctrl+V (Paste), Ctrl+L / Ctrl+Delete (Clear)
                     if (e.ctrlKey || e.metaKey) {
                         if (e.shiftKey && e.key.toLowerCase() === 'c' && this.mode === 'sandbox') {
@@ -5544,6 +5735,11 @@
                         const modal = document.getElementById('unmapped-modal');
                         if (modal && !modal.classList.contains('hidden')) {
                             this.toggleMissingWordsModal();
+                            return;
+                        }
+                        const vol = document.getElementById('volume-popup');
+                        if (vol && !vol.classList.contains('hidden')) {
+                            this.toggleVolumeSlider(false);
                             return;
                         }
                         if (this.mode === 'sandbox') {
